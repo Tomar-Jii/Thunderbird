@@ -25,6 +25,7 @@ import type {
 } from './types/nowcast';
 import { AlertTriangle, CheckCircle2, RotateCw } from 'lucide-react';
 import { SoundingProfile } from './components/SoundingProfile';
+import { TacticalAviationGrid } from './components/TacticalAviationGrid';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -254,6 +255,9 @@ export default function App() {
 
         {/* Tab: Vertical Sounding & 3D Convective Profile */}
         {activeTab === 'sounding' && <SoundingProfile />}
+
+        {/* Tab: Tactical Aviation & Infrastructure Grid Defense */}
+        {activeTab === 'tactical' && <TacticalAviationGrid />}
 
         {/* Tab 2: Alert Center */}
         {activeTab === 'alerts' && (

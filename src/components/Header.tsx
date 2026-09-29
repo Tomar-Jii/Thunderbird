@@ -11,7 +11,8 @@ import {
   Cpu, 
   Compass,
   CheckCircle2,
-  Activity
+  Activity,
+  Plane
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -51,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Nowcast Console', icon: Compass },
     { id: 'sounding', label: 'Sounding & 3D Convection', icon: Activity },
+    { id: 'tactical', label: 'Aviation & Grid Defense', icon: Plane },
     { id: 'alerts', label: `Alert Center ${activeAlertCount > 0 ? `(${activeAlertCount})` : ''}`, icon: AlertTriangle },
     { id: 'fusion', label: 'Multisource Fusion', icon: Layers },
     { id: 'replay', label: 'Event Replay', icon: Clock },

@@ -128,6 +128,26 @@ export const GuidedDemoModal: React.FC<GuidedDemoModalProps> = ({
       action: () => {
         setActiveTab('verification');
       }
+    },
+    {
+      step: 10,
+      title: 'Vertical Sounding & 3D Convection',
+      headline: 'Interactive Skew-T / Log-P Energetics & Radar RHI Core',
+      desc: 'Deep-dive into thermodynamic buoyancy physics: inspect CAPE (3,850 J/kg), CIN, Freezing Level (4.8 km), and the critical -10°C to -30°C Hail Growth Zone. Drag temperature and dewpoint sensitivity sliders in real-time.',
+      actionLabel: 'Open Sounding & 3D Convection',
+      action: () => {
+        setActiveTab('sounding');
+      }
+    },
+    {
+      step: 11,
+      title: 'Tactical Aviation & Infrastructure Defense',
+      headline: 'TDWR Wind Shear, 765kV Power Grid Islanding & Multilingual CBS',
+      desc: 'Out-of-the-box operational modules: Runway Low-Level Wind Shear (LLWS) alerts for VECC/VIDP/VABB, PowerGrid high-voltage transmission line lightning trip defense, PINN vs optical flow benchmarks, and multilingual CAP 1.2 cell broadcast in Hindi, English, Bengali, and Marathi.',
+      actionLabel: 'Explore Aviation & Grid Defense',
+      action: () => {
+        setActiveTab('tactical');
+      }
     }
   ];
 
