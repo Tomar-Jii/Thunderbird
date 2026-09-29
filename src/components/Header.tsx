@@ -90,59 +90,62 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Main 3-Zone Bar */}
-      <div className="px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
-        {/* Zone 1: Wordmark */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-bold text-lg font-mono shrink-0">
-            ⚡
-          </div>
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg sm:text-xl font-bold tracking-tight text-white font-['Chakra_Petch',sans-serif]">
-                StormSight <span className="text-cyan-400">AI</span>
-              </span>
-              <span className="text-[10px] sm:text-xs text-slate-400 font-mono">v1.4.2</span>
+      <div className="px-3 sm:px-4 lg:px-6 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+        {/* Row 1 on mobile: Wordmark + Action Buttons */}
+        <div className="flex items-center justify-between gap-2 w-full lg:w-auto">
+          {/* Wordmark */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-bold text-lg font-mono shrink-0">
+              ⚡
             </div>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 line-clamp-1">
-              Atmospheric Thunderstorm & Lightning Nowcasting Platform
-            </p>
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base sm:text-lg font-bold tracking-tight text-white font-['Chakra_Petch',sans-serif]">
+                  StormSight <span className="text-cyan-400">AI</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">v1.4.2</span>
+              </div>
+              <p className="text-[10px] text-slate-400 line-clamp-1 hidden sm:block">
+                Thunderstorm & Lightning Nowcasting Platform
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons (Always cleanly visible on right) */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={onStartGuidedDemo}
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-[11px] font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Start Automated 9-Step Evaluation Walkthrough for Judges"
+            >
+              <Play className="w-3 h-3 fill-amber-300 shrink-0" />
+              <span>DEMO</span>
+            </button>
+
+            <button
+              onClick={onRunNowcast}
+              disabled={isRunningNowcast}
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-[11px] font-semibold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 rounded-lg transition-all shadow-md shadow-cyan-600/20 active:scale-95 cursor-pointer"
+              title="Run on-demand multi-source atmospheric feature extraction & inference"
+            >
+              <RotateCw className={`w-3 h-3 shrink-0 ${isRunningNowcast ? 'animate-spin' : ''}`} />
+              <span>{isRunningNowcast ? 'RUNNING...' : 'NOWCAST'}</span>
+            </button>
+
+            <button
+              onClick={onOpenDocs}
+              className="flex items-center gap-1 px-2 py-1 text-[11px] text-slate-300 bg-slate-800 hover:bg-slate-700/80 border border-slate-700 rounded-lg transition-colors cursor-pointer"
+              title="API Documentation, Deployment Specs & Download"
+            >
+              <BookOpen className="w-3 h-3 text-slate-400 shrink-0" />
+              <span className="hidden sm:inline">Docs</span>
+            </button>
           </div>
         </div>
 
-        {/* Zone 3: Actions (Wrapped nicely on small screens) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto lg:order-3">
-          <button
-            onClick={onStartGuidedDemo}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-all shadow-sm active:scale-95 cursor-pointer"
-            title="Start Automated 9-Step Evaluation Walkthrough for Judges"
-          >
-            <Play className="w-3.5 h-3.5 fill-amber-300 shrink-0" />
-            <span>DEMO</span>
-          </button>
-
-          <button
-            onClick={onRunNowcast}
-            disabled={isRunningNowcast}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 rounded-lg transition-all shadow-md shadow-cyan-600/20 active:scale-95 cursor-pointer"
-            title="Run on-demand multi-source atmospheric feature extraction & inference"
-          >
-            <RotateCw className={`w-3.5 h-3.5 shrink-0 ${isRunningNowcast ? 'animate-spin' : ''}`} />
-            <span>{isRunningNowcast ? 'RUNNING...' : 'NOWCAST'}</span>
-          </button>
-
-          <button
-            onClick={onOpenDocs}
-            className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700/80 border border-slate-700 rounded-lg transition-colors cursor-pointer"
-            title="API Documentation, Deployment Specs & Download"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className="hidden md:inline">Docs</span>
-          </button>
-        </div>
-
-        {/* Zone 2: Navigation Links (Scrollable horizontally on mobile without breaking viewport) */}
-        <div className="w-full lg:w-auto lg:order-2 overflow-x-auto pb-1 -mx-1 px-1 flex-1">
-          <nav className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-800 w-max min-w-full sm:min-w-0">
+        {/* Row 2 on mobile: Navigation Links Strip */}
+        <div className="w-full lg:w-auto overflow-x-auto pb-0.5 no-scrollbar">
+          <nav className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-800 w-max">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -150,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
                     isActive
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-sm font-semibold'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'

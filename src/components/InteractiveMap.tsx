@@ -896,13 +896,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-1 sm:gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-1.5">
           {/* Layer Visibility Toggles */}
-          <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-xs shadow-xl shrink-0">
+          <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-xs shadow-xl flex-wrap">
             {/* Live Radar Toggle */}
             <button
               onClick={() => setShowLiveRainViewer(!showLiveRainViewer)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold transition-all text-xs ${
+              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg font-mono font-bold transition-all text-xs cursor-pointer ${
                 showLiveRainViewer
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
@@ -911,60 +911,59 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             >
               <span className={`w-1.5 h-1.5 rounded-full ${showLiveRainViewer ? 'bg-emerald-400 animate-ping' : 'bg-slate-600'}`}></span>
               <CloudRain className="w-3.5 h-3.5" />
-              <span>RADAR OVERLAY</span>
+              <span>RADAR</span>
             </button>
 
             <button
               onClick={() => setShowRadarRings(!showRadarRings)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs cursor-pointer ${
                 showRadarRings ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle DWR Range Rings (120km/220km sweeps)"
             >
               <Radio className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">DWR</span>
+              <span>DWR</span>
             </button>
 
             <button
               onClick={() => setShowSatelliteIR(!showSatelliteIR)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs cursor-pointer ${
                 showSatelliteIR ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle INSAT-3DR Deep Convection Infrared contours"
             >
               <Satellite className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">INSAT</span>
+              <span>INSAT</span>
             </button>
 
             <button
               onClick={() => setShowLightning(!showLightning)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs cursor-pointer ${
                 showLightning ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle Lightning Discharges"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Lightning</span>
+              <span className="hidden xs:inline">LTG</span>
             </button>
 
             <button
               onClick={() => setShowStormCells(!showStormCells)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs cursor-pointer ${
                 showStormCells ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle Convective Cell Footprints & Motion Vectors"
             >
               <Wind className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Cells</span>
+              <span>Cells</span>
             </button>
           </div>
 
           {/* Basemap Switcher (Satellite, 3D Topo, Dark, OSM) */}
-          <div className="flex items-center gap-1 bg-slate-950/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-[11px] font-mono shadow-xl shrink-0">
-            <span className="text-[10px] text-slate-500 hidden xl:inline px-1">VIEW:</span>
+          <div className="flex items-center gap-1 bg-slate-950/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-[11px] font-mono shadow-xl ml-auto">
             <button
               onClick={() => setBasemapType('satellite')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all font-bold cursor-pointer ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all font-bold cursor-pointer ${
                 basemapType === 'satellite'
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
                   : 'text-slate-400 hover:text-white hover:bg-slate-900'
@@ -972,7 +971,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               title="Esri World Imagery High-Res Satellite with Terrain & Atmosphere"
             >
               <span>🛰️</span>
-              <span>Satellite</span>
+              <span className="hidden sm:inline">Sat</span>
             </button>
             <button
               onClick={() => setBasemapType('topo')}
@@ -984,7 +983,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               title="3D Topographic Shaded Relief, Mountain Ridges & River Valleys"
             >
               <span>🏔️</span>
-              <span>3D Topo</span>
+              <span className="hidden sm:inline">Topo</span>
             </button>
             <button
               onClick={() => setBasemapType('dark')}
@@ -996,7 +995,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               title="Midnight Tactical Dark Gray Canvas"
             >
               <span>🌌</span>
-              <span>Dark</span>
+              <span className="hidden sm:inline">Dark</span>
             </button>
             <button
               onClick={() => setBasemapType('osm')}
@@ -1008,7 +1007,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               title="OpenStreetMap Standard Navigation"
             >
               <span>🗺️</span>
-              <span>Street</span>
+              <span className="hidden sm:inline">Street</span>
             </button>
           </div>
         </div>

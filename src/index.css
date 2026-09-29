@@ -4,12 +4,14 @@
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
+    touch-action: pan-y;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background-color: #070b14;
     color: #e2e8f0;
+    -webkit-text-size-adjust: 100%;
   }
 
   code, kbd, samp, pre {
