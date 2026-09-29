@@ -18,7 +18,13 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
-  CloudRain
+  CloudRain,
+  SkipBack,
+  SkipForward,
+  Repeat,
+  Clock,
+  Activity,
+  Flame
 } from 'lucide-react';
 import type { StormCell, LightningStrike, RiskLevel } from '../types/nowcast';
 
@@ -92,6 +98,124 @@ const COLOR_SCHEMES = [
   { id: 1, name: 'Titan Dual-Pol' }
 ];
 
+export const STORM_CYCLE_STEPS = [0, 15, 30, 45, 60, 75, 90, 105, 120];
+
+export interface StormLifecyclePhase {
+  phase: string;
+  stageName: string;
+  badgeColor: string;
+  description: string;
+  reflectivityMultiplier: number;
+  lightningMultiplier: number;
+  capeJkg: number;
+  icon: string;
+  simulatedDbz: number;
+  simulatedFlashRate: number;
+  echoTopKm: number;
+}
+
+export function getLifecyclePhase(minutes: number, baseDbz = 52): StormLifecyclePhase {
+  if (minutes === 0) {
+    return {
+      phase: 'INITIATION',
+      stageName: 'Stage 1: Convective Initiation',
+      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+      description: 'Localized thermal updrafts breaking capping inversion; cumulus congestus breakout.',
+      reflectivityMultiplier: 0.78,
+      lightningMultiplier: 0.3,
+      capeJkg: 2850,
+      icon: '🌱',
+      simulatedDbz: Math.round(baseDbz * 0.78),
+      simulatedFlashRate: 8,
+      echoTopKm: 8.2
+    };
+  } else if (minutes <= 20) {
+    return {
+      phase: 'UPDRAFT_SURGE',
+      stageName: 'Stage 2: Explosive Updraft Acceleration',
+      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+      description: 'Vigorous graupel-ice hydrometeor collisions; sharp surge in intra-cloud lightning discharges.',
+      reflectivityMultiplier: 0.98,
+      lightningMultiplier: 0.85,
+      capeJkg: 2950,
+      icon: '⚡',
+      simulatedDbz: Math.round(baseDbz * 0.98),
+      simulatedFlashRate: 34,
+      echoTopKm: 11.5
+    };
+  } else if (minutes <= 40) {
+    return {
+      phase: 'MATURE_CORE',
+      stageName: 'Stage 3: Mature Supercell & Hail Core',
+      badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+      description: 'Severe convective core >55 dBZ; dense hail shaft descending with rapid cloud-to-ground strikes.',
+      reflectivityMultiplier: 1.18,
+      lightningMultiplier: 1.45,
+      capeJkg: 3200,
+      icon: '🌩️',
+      simulatedDbz: Math.min(68, Math.round(baseDbz * 1.18)),
+      simulatedFlashRate: 72,
+      echoTopKm: 14.8
+    };
+  } else if (minutes <= 60) {
+    return {
+      phase: 'MICROBURST_OUTFLOW',
+      stageName: 'Stage 4: Downburst & Severe Outflow Boundary',
+      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+      description: 'Heavy precipitation loading induces severe 85+ km/h downdrafts and microburst gust front.',
+      reflectivityMultiplier: 1.10,
+      lightningMultiplier: 1.15,
+      capeJkg: 2650,
+      icon: '🌪️',
+      simulatedDbz: Math.round(baseDbz * 1.10),
+      simulatedFlashRate: 58,
+      echoTopKm: 13.6
+    };
+  } else if (minutes <= 80) {
+    return {
+      phase: 'GUST_FRONT',
+      stageName: 'Stage 5: Squall Line & Cold Pool Propagation',
+      badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+      description: 'Multi-cell clustering along advancing cold pool boundary; secondary cell generation triggered.',
+      reflectivityMultiplier: 0.92,
+      lightningMultiplier: 0.70,
+      capeJkg: 2150,
+      icon: '💨',
+      simulatedDbz: Math.round(baseDbz * 0.92),
+      simulatedFlashRate: 32,
+      echoTopKm: 10.4
+    };
+  } else if (minutes <= 100) {
+    return {
+      phase: 'STRATIFORM_DECAY',
+      stageName: 'Stage 6: Decaying Mesoscale Rain Shield',
+      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+      description: 'Convective towers collapse into widespread stratiform rain shield; expanding anvil cirrus.',
+      reflectivityMultiplier: 0.72,
+      lightningMultiplier: 0.30,
+      capeJkg: 1700,
+      icon: '🌧️',
+      simulatedDbz: Math.round(baseDbz * 0.72),
+      simulatedFlashRate: 12,
+      echoTopKm: 8.0
+    };
+  } else {
+    return {
+      phase: 'DISSIPATION',
+      stageName: 'Stage 7: Convective Dissipation & Clearing',
+      badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
+      description: 'Residual stratiform drizzle with thinning cirrus shield; tropospheric boundary layer stabilized.',
+      reflectivityMultiplier: 0.55,
+      lightningMultiplier: 0.10,
+      capeJkg: 1350,
+      icon: '⛅',
+      simulatedDbz: Math.round(baseDbz * 0.55),
+      simulatedFlashRate: 2,
+      echoTopKm: 6.2
+    };
+  }
+}
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   selectedLocationId,
   onSelectLocation,
@@ -108,7 +232,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const rainViewerTileLayerRef = useRef<L.TileLayer | null>(null);
 
   // Basemap options: 100% Free, NO CartoDB, NO "API Key Required" watermark!
-  const [basemapType, setBasemapType] = useState<'dark' | 'satellite' | 'osm'>('dark');
+  const [basemapType, setBasemapType] = useState<'satellite' | 'topo' | 'dark' | 'osm'>('satellite');
 
   // Dynamic Real-Time Radar State
   const [showLiveRainViewer, setShowLiveRainViewer] = useState<boolean>(true);
@@ -120,10 +244,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [colorScheme, setColorScheme] = useState<number>(2);
   const [smoothRadar, setSmoothRadar] = useState<boolean>(true);
 
-  // Animation & Loop Controls
+  // Animation & Loop Controls (RainViewer Doppler)
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(800); // ms per frame
   const [showAdvancedRadarPanel, setShowAdvancedRadarPanel] = useState<boolean>(false);
+
+  // Storm Development Cycle Animation State
+  const [isStormCyclePlaying, setIsStormCyclePlaying] = useState<boolean>(false);
+  const [stormCycleSpeed, setStormCycleSpeed] = useState<number>(1200); // ms per step
+  const [isContinuousLoop, setIsContinuousLoop] = useState<boolean>(true);
 
   // Synthetic & Observation Layers
   const [showRadarRings, setShowRadarRings] = useState(true);
@@ -134,8 +263,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   // Station Filter & Search State
   const [stationCategory, setStationCategory] = useState<'ALL' | 'MP' | 'NATIONAL'>('ALL');
   const [stationSearch, setStationSearch] = useState<string>('');
-
-  const horizonOptions = [0, 15, 30, 60, 90, 120];
 
   // 1. Fetch Real-time Radar Maps from RainViewer Public API
   const fetchRainViewerMaps = useCallback(async () => {
@@ -180,6 +307,69 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return () => clearInterval(interval);
   }, [isPlaying, radarFrames.length, playbackSpeed]);
 
+  // 2b. Storm Development Cycle Animation Loop Effect (Simulates looping 0-120m convective lifecycle)
+  useEffect(() => {
+    if (!isStormCyclePlaying) return;
+
+    const interval = setInterval(() => {
+      const idx = STORM_CYCLE_STEPS.indexOf(selectedHorizonMinutes);
+      let nextIdx = (idx < 0 ? 0 : idx) + 1;
+      if (nextIdx >= STORM_CYCLE_STEPS.length) {
+        if (isContinuousLoop) {
+          nextIdx = 0; // Loop back to Initiation (T+0m)
+        } else {
+          setIsStormCyclePlaying(false);
+          return;
+        }
+      }
+      const nextMin = STORM_CYCLE_STEPS[nextIdx];
+      onSelectHorizon(nextMin);
+
+      // Sync Doppler radar frame proportionally if loaded
+      if (radarFrames.length > 0) {
+        const frameIdx = Math.floor((nextMin / 120) * (radarFrames.length - 1));
+        setCurrentFrameIndex(frameIdx);
+      }
+    }, stormCycleSpeed);
+
+    return () => clearInterval(interval);
+  }, [isStormCyclePlaying, selectedHorizonMinutes, isContinuousLoop, stormCycleSpeed, radarFrames.length, onSelectHorizon]);
+
+  // Step Forward & Step Backward Handlers
+  const handleStepForward = () => {
+    setIsStormCyclePlaying(false);
+    const currentIndex = STORM_CYCLE_STEPS.indexOf(selectedHorizonMinutes);
+    const nextIndex = Math.min(STORM_CYCLE_STEPS.length - 1, (currentIndex < 0 ? 0 : currentIndex) + 1);
+    const nextMin = STORM_CYCLE_STEPS[nextIndex];
+    onSelectHorizon(nextMin);
+    if (radarFrames.length > 0) {
+      setCurrentFrameIndex(Math.floor((nextMin / 120) * (radarFrames.length - 1)));
+    }
+  };
+
+  const handleStepBackward = () => {
+    setIsStormCyclePlaying(false);
+    const currentIndex = STORM_CYCLE_STEPS.indexOf(selectedHorizonMinutes);
+    const prevIndex = Math.max(0, (currentIndex < 0 ? 0 : currentIndex) - 1);
+    const prevMin = STORM_CYCLE_STEPS[prevIndex];
+    onSelectHorizon(prevMin);
+    if (radarFrames.length > 0) {
+      setCurrentFrameIndex(Math.floor((prevMin / 120) * (radarFrames.length - 1)));
+    }
+  };
+
+  const handleTimeSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsStormCyclePlaying(false);
+    const val = Number(e.target.value);
+    const closest = STORM_CYCLE_STEPS.reduce((prev, curr) => 
+      Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev
+    );
+    onSelectHorizon(closest);
+    if (radarFrames.length > 0) {
+      setCurrentFrameIndex(Math.floor((closest / 120) * (radarFrames.length - 1)));
+    }
+  };
+
   // 3. Initialize Leaflet Map (Using Clean Esri Dark Canvas - NO WATERMARKS)
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -195,22 +385,22 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Default: Esri World Dark Gray Canvas (100% Free, NO API Key watermark)
-    const baseLayer = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    // Default: High-Definition True-Color Satellite Imagery (Esri World Imagery)
+    const satLayer = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
-        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-        maxZoom: 16
+        attribution: 'Tiles &copy; Esri World Imagery',
+        maxZoom: 18
       }
     ).addTo(map);
-    baseTileLayerRef.current = baseLayer;
+    baseTileLayerRef.current = satLayer;
 
-    // Labels Reference Overlay
+    // Boundaries and City Labels Reference Overlay
     const labelsLayer = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
       {
         attribution: '',
-        maxZoom: 16,
+        maxZoom: 18,
         zIndex: 200
       }
     ).addTo(map);
@@ -231,7 +421,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     };
   }, []);
 
-  // 4. Update Basemap when changed (Esri Dark, Esri Satellite, OpenStreetMap)
+  // 4. Update Basemap when changed (Satellite, 3D Topo, Tactical Dark, OSM)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -246,7 +436,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
 
     if (basemapType === 'satellite') {
-      // 100% Free Esri World Imagery (No API key, pristine satellite photos)
+      // 100% Free High-Res Esri World Imagery Satellite
       const satLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         {
@@ -257,7 +447,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       satLayer.bringToBack();
       baseTileLayerRef.current = satLayer;
 
-      // Overlay country boundaries and places
+      // Overlay country & administrative boundaries, highways, cities
       const boundaryLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
         {
@@ -267,6 +457,18 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }
       ).addTo(map);
       baseLabelsLayerRef.current = boundaryLayer;
+
+    } else if (basemapType === 'topo') {
+      // 100% Free Esri World Topo Map (Shaded Relief, Topography, River Valleys, Green Mountain Ridges)
+      const topoLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri World Topo',
+          maxZoom: 18
+        }
+      ).addTo(map);
+      topoLayer.bringToBack();
+      baseTileLayerRef.current = topoLayer;
 
     } else if (basemapType === 'osm') {
       // 100% Free OpenStreetMap Standard
@@ -278,7 +480,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       baseTileLayerRef.current = osmLayer;
 
     } else {
-      // Default: Esri World Dark Gray Base (Pristine clean dark tactical, NO WATERMARKS)
+      // Esri World Dark Gray Base (Pristine clean dark tactical)
       const darkLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
         {
@@ -422,38 +624,59 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       });
     }
 
+    // Convective Lifecycle Profile for active horizon
+    const currentPhase = getLifecyclePhase(selectedHorizonMinutes, 52);
+
     // 3. Convective Storm Cells & Tracking Motion Vectors
     if (showStormCells) {
       stormCells.forEach((cell) => {
         const cLat = cell.centroid[0] + dLat;
         const cLon = cell.centroid[1] + dLon;
 
+        // Dynamic simulated reflectivity throughout development cycle
+        const simulatedDbz = Math.min(68, Math.max(20, Math.round(cell.maxReflectivityDbz * currentPhase.reflectivityMultiplier)));
+        
         let strokeColor = '#22c55e';
         let fillColor = '#22c55e';
-        if (cell.severity === 'SEVERE') {
+        let fillOpacity = 0.35;
+        let severityTag = 'MODERATE CELL';
+
+        if (simulatedDbz >= 55) {
           strokeColor = '#f43f5e';
-          fillColor = '#e11d48';
-        } else if (cell.severity === 'HIGH') {
-          strokeColor = '#f59e0b';
-          fillColor = '#d97706';
-        } else if (cell.severity === 'MODERATE') {
+          fillColor = '#be123c';
+          fillOpacity = 0.55;
+          severityTag = 'SEVERE HAIL CORE';
+        } else if (simulatedDbz >= 45) {
+          strokeColor = '#f97316';
+          fillColor = '#ea580c';
+          fillOpacity = 0.45;
+          severityTag = 'HIGH CONVECTION';
+        } else if (simulatedDbz >= 35) {
           strokeColor = '#eab308';
           fillColor = '#ca8a04';
+          fillOpacity = 0.35;
+          severityTag = 'MODERATE RAIN';
+        } else {
+          strokeColor = '#06b6d4';
+          fillColor = '#0891b2';
+          fillOpacity = 0.25;
+          severityTag = 'DISSIPATING STRATIFORM';
         }
 
         // Polygon footprint
         const polyCoords: L.LatLngExpression[] = cell.polygonCoordinates.map(([lat, lon]) => [lat + dLat, lon + dLon]);
         L.polygon(polyCoords, {
           color: strokeColor,
-          weight: 2,
+          weight: simulatedDbz >= 55 ? 3 : 2,
           fillColor: fillColor,
-          fillOpacity: 0.35
+          fillOpacity: fillOpacity
         })
           .bindTooltip(`
             <div style="font-family: monospace; font-size: 11px;">
               <b>Storm Cell #${cell.id} (${cell.name})</b><br>
-              Max Reflectivity: <span style="color: #f43f5e; font-weight: bold;">${cell.maxReflectivityDbz} dBZ</span><br>
-              Echo Top: <b>${cell.echoTopKm} km</b><br>
+              Phase: <span style="color: #38bdf8; font-weight: bold;">${currentPhase.stageName}</span><br>
+              Simulated Core: <span style="color: ${strokeColor}; font-weight: bold;">${simulatedDbz} dBZ (${severityTag})</span><br>
+              Echo Top: <b>${(cell.echoTopKm * (simulatedDbz / Math.max(1, cell.maxReflectivityDbz))).toFixed(1)} km</b><br>
               Motion: ${cell.motionSpeedKmh} km/h @ ${cell.motionHeadingDeg}°
             </div>
           `, { direction: 'top' })
@@ -574,8 +797,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return `-${diffMin}m ago`;
   };
 
+  const currentPhase = getLifecyclePhase(selectedHorizonMinutes, 52);
+
   return (
-    <div className="relative rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden flex flex-col h-[580px] shadow-2xl">
+    <div className="relative rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden flex flex-col h-[640px] md:h-[680px] shadow-2xl">
       {/* Top Map HUD Controls - Mobile Responsive */}
       <div className="absolute top-2 left-2 right-2 z-[1000] flex flex-col gap-1.5 pointer-events-auto">
         {/* Station Navigation & Category Filter Bar (36 Stations) */}
@@ -706,34 +931,56 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             </button>
           </div>
 
-          {/* Basemap Switcher (100% Free: Esri Dark / Esri Satellite / OSM) */}
-          <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-[11px] font-mono shadow-xl shrink-0">
-            <button
-              onClick={() => setBasemapType('dark')}
-              className={`px-2 py-0.5 rounded-lg transition-colors ${
-                basemapType === 'dark' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-              title="Esri World Dark Gray (Zero API key, NO watermark)"
-            >
-              Dark
-            </button>
+          {/* Basemap Switcher (Satellite, 3D Topo, Dark, OSM) */}
+          <div className="flex items-center gap-1 bg-slate-950/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-[11px] font-mono shadow-xl shrink-0">
+            <span className="text-[10px] text-slate-500 hidden xl:inline px-1">VIEW:</span>
             <button
               onClick={() => setBasemapType('satellite')}
-              className={`px-2 py-0.5 rounded-lg transition-colors ${
-                basemapType === 'satellite' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all font-bold cursor-pointer ${
+                basemapType === 'satellite'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
-              title="Esri World Imagery High-Res Satellite (Zero API key)"
+              title="Esri World Imagery High-Res Satellite with Terrain & Atmosphere"
             >
-              Satellite
+              <span>🛰️</span>
+              <span>Satellite</span>
+            </button>
+            <button
+              onClick={() => setBasemapType('topo')}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all font-bold cursor-pointer ${
+                basemapType === 'topo'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+              title="3D Topographic Shaded Relief, Mountain Ridges & River Valleys"
+            >
+              <span>🏔️</span>
+              <span>3D Topo</span>
+            </button>
+            <button
+              onClick={() => setBasemapType('dark')}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all font-bold cursor-pointer ${
+                basemapType === 'dark'
+                  ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+              title="Midnight Tactical Dark Gray Canvas"
+            >
+              <span>🌌</span>
+              <span>Dark</span>
             </button>
             <button
               onClick={() => setBasemapType('osm')}
-              className={`px-2 py-0.5 rounded-lg transition-colors ${
-                basemapType === 'osm' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all font-bold cursor-pointer ${
+                basemapType === 'osm'
+                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
-              title="OpenStreetMap Standard"
+              title="OpenStreetMap Standard Navigation"
             >
-              OSM
+              <span>🗺️</span>
+              <span>Street</span>
             </button>
           </div>
         </div>
@@ -892,41 +1139,221 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         )}
       </div>
 
-      {/* Forecast Horizon Timeline Scrubber */}
-      <div className="absolute bottom-2 left-2 right-2 z-[1000] flex flex-wrap items-center justify-between gap-2 pointer-events-auto">
-        <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-2xl">
-          <span className="text-[10px] font-mono text-slate-400 px-1.5 font-semibold flex items-center gap-1">
-            <Compass className="w-3 h-3 text-cyan-400" />
-            <span className="hidden sm:inline">NOWCAST:</span>
-          </span>
-          {horizonOptions.map((min) => {
-            const isSelected = selectedHorizonMinutes === min;
-            return (
-              <button
-                key={min}
-                onClick={() => onSelectHorizon(min)}
-                className={`px-2 py-0.5 text-xs font-mono font-semibold rounded-lg transition-all ${
-                  isSelected
-                    ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 scale-105'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
-                }`}
-              >
-                {min === 0 ? 'NOW' : `+${min}m`}
-              </button>
-            );
-          })}
-        </div>
+      {/* Dynamic Storm Lifecycle & Radar Playback Time-Slider HUD */}
+      <div className="absolute bottom-2 left-2 right-2 z-[1000] flex flex-col gap-1.5 pointer-events-auto">
+        <div className="bg-slate-950/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-slate-800 shadow-2xl flex flex-col gap-2 text-xs font-mono">
+          
+          {/* Top Row: Convective Phase Badge & Real-Time Telemetry */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border shadow-sm ${currentPhase.badgeColor}`}>
+                <span className="text-sm">{currentPhase.icon}</span>
+                <span>{currentPhase.stageName}</span>
+              </div>
+              <span className="text-[11px] text-slate-400 hidden xl:inline max-w-lg truncate">
+                {currentPhase.description}
+              </span>
+            </div>
 
-        {/* Doppler dBZ Reflectivity Scale Legend */}
-        <div className="hidden sm:flex items-center gap-1 bg-slate-900/95 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-300 shadow-2xl">
-          <span className="text-slate-400">dBZ SCALE:</span>
-          <div className="flex items-center gap-0.5">
-            <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded-l text-[9px]">15 LGT</span>
-            <span className="px-1.5 py-0.5 bg-cyan-500 text-slate-950 font-bold text-[9px]">25 MOD</span>
-            <span className="px-1.5 py-0.5 bg-green-500 text-slate-950 font-bold text-[9px]">35 HVY</span>
-            <span className="px-1.5 py-0.5 bg-yellow-400 text-slate-950 font-bold text-[9px]">45 SVR</span>
-            <span className="px-1.5 py-0.5 bg-red-600 text-white font-bold text-[9px]">55 VIO</span>
-            <span className="px-1.5 py-0.5 bg-purple-600 text-white font-bold rounded-r text-[9px]">65+ HAIL</span>
+            <div className="flex items-center gap-2">
+              {/* Dynamic Storm Reflectivity Core */}
+              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px]">
+                <span className="text-slate-400">CORE dBZ:</span>
+                <span className={`font-bold ${currentPhase.simulatedDbz >= 55 ? 'text-rose-400 animate-pulse' : currentPhase.simulatedDbz >= 45 ? 'text-amber-400' : 'text-cyan-400'}`}>
+                  {currentPhase.simulatedDbz} dBZ
+                </span>
+              </div>
+
+              {/* Lightning Discharge Rate */}
+              <div className="hidden sm:flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px]">
+                <span className="text-slate-400">LIGHTNING:</span>
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-amber-400 fill-current" />
+                  ~{currentPhase.simulatedFlashRate} fl/min
+                </span>
+              </div>
+
+              {/* Echo Top */}
+              <div className="hidden md:flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-lg border border-slate-800 text-[11px]">
+                <span className="text-slate-400">ECHO TOP:</span>
+                <span className="text-purple-300 font-bold">{currentPhase.echoTopKm} km</span>
+              </div>
+
+              {/* Time from Initiation Badge */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>T + {selectedHorizonMinutes}m</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Row: Playback Controls + Scrub Slider + Speed & Loop Controls */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            
+            {/* Playback Controls Group */}
+            <div className="flex items-center gap-1">
+              {/* Jump to T+0m (Initiation) */}
+              <button
+                onClick={() => {
+                  setIsStormCyclePlaying(false);
+                  onSelectHorizon(0);
+                  if (radarFrames.length > 0) setCurrentFrameIndex(0);
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                title="Rewind to Storm Initiation (T+0m)"
+              >
+                <SkipBack className="w-4 h-4" />
+              </button>
+
+              {/* Step Backward -15m */}
+              <button
+                onClick={handleStepBackward}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                title="Step Backward -15 minutes"
+              >
+                <ChevronDown className="w-4 h-4 rotate-90" />
+              </button>
+
+              {/* Animated Loop Play / Pause Button */}
+              <button
+                onClick={() => setIsStormCyclePlaying(!isStormCyclePlaying)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-md cursor-pointer ${
+                  isStormCyclePlaying
+                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/30 animate-pulse'
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 shadow-cyan-500/30'
+                }`}
+                title={isStormCyclePlaying ? 'Pause Storm Development Loop' : 'Animate Looping Storm Development Cycle (0-120m)'}
+              >
+                {isStormCyclePlaying ? (
+                  <>
+                    <Pause className="w-3.5 h-3.5 fill-current" />
+                    <span>PAUSE LOOP</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>ANIMATE CYCLE</span>
+                  </>
+                )}
+              </button>
+
+              {/* Step Forward +15m */}
+              <button
+                onClick={handleStepForward}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                title="Step Forward +15 minutes"
+              >
+                <ChevronUp className="w-4 h-4 rotate-90" />
+              </button>
+
+              {/* Jump to T+120m (Dissipation) */}
+              <button
+                onClick={() => {
+                  setIsStormCyclePlaying(false);
+                  onSelectHorizon(120);
+                  if (radarFrames.length > 0) setCurrentFrameIndex(radarFrames.length - 1);
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                title="Fast-forward to Final Dissipation (T+120m)"
+              >
+                <SkipForward className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Time-Slider Control (0 to 120m) with Snap Ticks */}
+            <div className="flex-1 min-w-[240px] px-1 sm:px-3 flex flex-col gap-1">
+              <div className="relative flex items-center">
+                <input
+                  type="range"
+                  min="0"
+                  max="120"
+                  step="15"
+                  value={selectedHorizonMinutes}
+                  onChange={handleTimeSliderChange}
+                  className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer transition-all"
+                  title="Drag time-slider to scrub through the 0-120 minute storm development cycle"
+                />
+              </div>
+
+              {/* Ticks & Step Pills */}
+              <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
+                {STORM_CYCLE_STEPS.map((step) => {
+                  const isActive = selectedHorizonMinutes === step;
+                  return (
+                    <button
+                      key={step}
+                      onClick={() => {
+                        setIsStormCyclePlaying(false);
+                        onSelectHorizon(step);
+                        if (radarFrames.length > 0) {
+                          setCurrentFrameIndex(Math.floor((step / 120) * (radarFrames.length - 1)));
+                        }
+                      }}
+                      className={`transition-all px-1 py-0.5 rounded cursor-pointer ${
+                        isActive
+                          ? 'text-cyan-300 font-bold scale-110 bg-cyan-950/80 border border-cyan-500/50'
+                          : 'hover:text-white'
+                      }`}
+                    >
+                      {step === 0 ? 'NOW' : `+${step}m`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Speed & Loop Controls + dBZ Legend */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Speed Buttons */}
+              <div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-[10px]">
+                <button
+                  onClick={() => setStormCycleSpeed(2000)}
+                  className={`px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 2000 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                  title="Slow 0.5x speed"
+                >
+                  0.5x
+                </button>
+                <button
+                  onClick={() => setStormCycleSpeed(1200)}
+                  className={`px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 1200 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                  title="Normal 1.0x speed"
+                >
+                  1x
+                </button>
+                <button
+                  onClick={() => setStormCycleSpeed(600)}
+                  className={`px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 600 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                  title="Fast 2.0x scan"
+                >
+                  2x
+                </button>
+              </div>
+
+              {/* Loop Mode Toggle */}
+              <button
+                onClick={() => setIsContinuousLoop(!isContinuousLoop)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                  isContinuousLoop
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                }`}
+                title="Toggle continuous looping animation"
+              >
+                <Repeat className={`w-3 h-3 ${isContinuousLoop ? 'text-emerald-400' : ''}`} />
+                <span>{isContinuousLoop ? 'LOOP ON' : 'ONCE'}</span>
+              </button>
+
+              {/* Mini dBZ Color Reference */}
+              <div className="hidden 2xl:flex items-center gap-0.5 text-[9px] bg-slate-900 px-1.5 py-1 rounded-lg border border-slate-800">
+                <span className="text-slate-500 mr-0.5">dBZ:</span>
+                <span className="px-1 bg-cyan-500 text-slate-950 font-bold rounded-l">25</span>
+                <span className="px-1 bg-green-500 text-slate-950 font-bold">35</span>
+                <span className="px-1 bg-yellow-400 text-slate-950 font-bold">45</span>
+                <span className="px-1 bg-red-600 text-white font-bold">55</span>
+                <span className="px-1 bg-purple-600 text-white font-bold rounded-r">65+</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
