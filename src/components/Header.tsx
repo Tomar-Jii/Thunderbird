@@ -12,7 +12,8 @@ import {
   Compass,
   CheckCircle2,
   Activity,
-  Plane
+  Plane,
+  TrendingUp
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -51,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const navItems = [
     { id: 'dashboard', label: 'Nowcast Console', icon: Compass },
+    { id: 'climate', label: 'Climate Trends (D3)', icon: TrendingUp },
     { id: 'sounding', label: 'Sounding & 3D Convection', icon: Activity },
     { id: 'tactical', label: 'Aviation & Grid Defense', icon: Plane },
     { id: 'alerts', label: `Alert Center ${activeAlertCount > 0 ? `(${activeAlertCount})` : ''}`, icon: AlertTriangle },

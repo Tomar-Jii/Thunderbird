@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { 
   Layers, 
@@ -13,7 +13,12 @@ import {
   Pause,
   RotateCw,
   Info,
-  Maximize2
+  Maximize2,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  CloudRain
 } from 'lucide-react';
 import type { StormCell, LightningStrike, RiskLevel } from '../types/nowcast';
 
@@ -37,6 +42,13 @@ const MP_LOCATIONS = [
   { id: 'narmadapuram', name: 'Narmadapuram', lat: 22.7519, lon: 77.7289, risk: 'HIGH' as RiskLevel, dbz: 46 }
 ];
 
+const COLOR_SCHEMES = [
+  { id: 2, name: 'Universal Doppler (IMD/ECMWF)' },
+  { id: 6, name: 'NEXRAD Level-III' },
+  { id: 7, name: 'Rainbow Convective' },
+  { id: 1, name: 'Titan Dual-Pol' }
+];
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   selectedLocationId,
   onSelectLocation,
@@ -55,13 +67,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   // Basemap options: 100% Free, NO CartoDB, NO "API Key Required" watermark!
   const [basemapType, setBasemapType] = useState<'dark' | 'satellite' | 'osm'>('dark');
 
-  // Real-Time RainViewer State
+  // Dynamic Real-Time Radar State
   const [showLiveRainViewer, setShowLiveRainViewer] = useState<boolean>(true);
   const [rainViewerHost, setRainViewerHost] = useState<string>('https://tilecache.rainviewer.com');
   const [radarFrames, setRadarFrames] = useState<Array<{ time: number; path: string }>>([]);
   const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(-1);
   const [isLoadingRadar, setIsLoadingRadar] = useState<boolean>(false);
   const [radarOpacity, setRadarOpacity] = useState<number>(0.85);
+  const [colorScheme, setColorScheme] = useState<number>(2);
+  const [smoothRadar, setSmoothRadar] = useState<boolean>(true);
+
+  // Animation & Loop Controls
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(800); // ms per frame
+  const [showAdvancedRadarPanel, setShowAdvancedRadarPanel] = useState<boolean>(false);
 
   // Synthetic & Observation Layers
   const [showRadarRings, setShowRadarRings] = useState(true);
@@ -71,38 +90,50 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   const horizonOptions = [0, 15, 30, 60, 90, 120];
 
-  // 1. Fetch RainViewer Public Weather Maps JSON (Zero Key Required)
-  useEffect(() => {
-    let isMounted = true;
-    const fetchRainViewerMaps = async () => {
-      try {
-        setIsLoadingRadar(true);
-        const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-        if (!res.ok) throw new Error(`RainViewer HTTP ${res.status}`);
-        const data = await res.json();
-        if (!isMounted) return;
+  // 1. Fetch Real-time Radar Maps from RainViewer Public API
+  const fetchRainViewerMaps = useCallback(async () => {
+    try {
+      setIsLoadingRadar(true);
+      const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+      if (!res.ok) throw new Error(`RainViewer HTTP ${res.status}`);
+      const data = await res.json();
 
-        if (data.host && data.radar?.past && data.radar.past.length > 0) {
-          setRainViewerHost(data.host);
-          setRadarFrames(data.radar.past);
-          setCurrentFrameIndex(data.radar.past.length - 1); // Latest frame
-        }
-      } catch (err) {
-        console.warn('Could not load live RainViewer radar frames:', err);
-      } finally {
-        if (isMounted) setIsLoadingRadar(false);
+      if (data.host && data.radar?.past && data.radar.past.length > 0) {
+        setRainViewerHost(data.host);
+        setRadarFrames(data.radar.past);
+        // Default to latest available scan
+        setCurrentFrameIndex(data.radar.past.length - 1);
       }
-    };
-
-    fetchRainViewerMaps();
-    const interval = setInterval(fetchRainViewerMaps, 5 * 60 * 1000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+    } catch (err) {
+      console.warn('Could not load live RainViewer radar frames:', err);
+    } finally {
+      setIsLoadingRadar(false);
+    }
   }, []);
 
-  // 2. Initialize Leaflet Map (Using Clean Esri Dark Canvas - NO WATERMARKS)
+  useEffect(() => {
+    fetchRainViewerMaps();
+    const interval = setInterval(fetchRainViewerMaps, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchRainViewerMaps]);
+
+  // 2. Continuous Animation Loop Effect
+  useEffect(() => {
+    if (!isPlaying || radarFrames.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentFrameIndex((prev) => {
+        if (prev >= radarFrames.length - 1) {
+          return 0; // Loop back to oldest frame
+        }
+        return prev + 1;
+      });
+    }, playbackSpeed);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, radarFrames.length, playbackSpeed]);
+
+  // 3. Initialize Leaflet Map (Using Clean Esri Dark Canvas - NO WATERMARKS)
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
@@ -153,7 +184,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     };
   }, []);
 
-  // 3. Update Basemap when changed (Esri Dark, Esri Satellite, OpenStreetMap)
+  // 4. Update Basemap when changed (Esri Dark, Esri Satellite, OpenStreetMap)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -223,34 +254,41 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [basemapType]);
 
-  // 4. Update RainViewer Live Radar Tile Layer
+  // 5. Update Dynamic Real-Time Radar Reflectivity Tile Layer
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    if (rainViewerTileLayerRef.current) {
-      map.removeLayer(rainViewerTileLayerRef.current);
-      rainViewerTileLayerRef.current = null;
+    if (!showLiveRainViewer || radarFrames.length === 0 || currentFrameIndex < 0) {
+      if (rainViewerTileLayerRef.current) {
+        map.removeLayer(rainViewerTileLayerRef.current);
+        rainViewerTileLayerRef.current = null;
+      }
+      return;
     }
-
-    if (!showLiveRainViewer || radarFrames.length === 0 || currentFrameIndex < 0) return;
 
     const frame = radarFrames[currentFrameIndex];
     if (!frame) return;
 
-    // RainViewer Tile Format: host + path + /256/{z}/{x}/{y}/2/1_1.png
-    const tileUrl = `${rainViewerHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+    const smoothFlag = smoothRadar ? '1' : '0';
+    // Format: host + path + /256/{z}/{x}/{y}/{colorScheme}/{smooth}_1.png
+    const tileUrl = `${rainViewerHost}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/${smoothFlag}_1.png`;
 
-    const radarLayer = L.tileLayer(tileUrl, {
-      opacity: radarOpacity,
-      zIndex: 500,
-      attribution: 'Radar Data &copy; RainViewer / IMD DWR'
-    }).addTo(map);
+    if (rainViewerTileLayerRef.current) {
+      // Smooth dynamic URL update (avoids screen flash)
+      rainViewerTileLayerRef.current.setUrl(tileUrl);
+      rainViewerTileLayerRef.current.setOpacity(radarOpacity);
+    } else {
+      const radarLayer = L.tileLayer(tileUrl, {
+        opacity: radarOpacity,
+        zIndex: 500,
+        attribution: 'Real-Time Radar &copy; RainViewer / IMD WMO'
+      }).addTo(map);
+      rainViewerTileLayerRef.current = radarLayer;
+    }
+  }, [showLiveRainViewer, radarFrames, currentFrameIndex, rainViewerHost, radarOpacity, colorScheme, smoothRadar]);
 
-    rainViewerTileLayerRef.current = radarLayer;
-  }, [showLiveRainViewer, radarFrames, currentFrameIndex, rainViewerHost, radarOpacity]);
-
-  // 5. Update Synthetic Weather Objects, Lightning, and Sensors
+  // 6. Update Synthetic Weather Objects, Lightning, and Sensors
   useEffect(() => {
     const map = mapInstanceRef.current;
     const group = layerGroupRef.current;
@@ -463,16 +501,27 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     onSelectLocation
   ]);
 
-  const latestFrame = radarFrames[currentFrameIndex];
-  const formattedRadarTime = latestFrame ? new Date(latestFrame.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  const activeFrame = radarFrames[currentFrameIndex];
+  const formattedRadarTime = activeFrame ? new Date(activeFrame.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  const isLatestFrame = currentFrameIndex === radarFrames.length - 1;
+
+  // Calculate relative minutes from now for current frame
+  const getRelativeFrameLabel = () => {
+    if (!activeFrame) return 'Syncing...';
+    if (isLatestFrame) return 'LIVE NOW';
+    const nowSec = Math.floor(Date.now() / 1000);
+    const diffMin = Math.round((nowSec - activeFrame.time) / 60);
+    return `-${diffMin}m ago`;
+  };
 
   return (
-    <div className="relative rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden flex flex-col h-[560px] shadow-2xl">
+    <div className="relative rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden flex flex-col h-[580px] shadow-2xl">
       {/* Top Map HUD Controls - Mobile Responsive */}
       <div className="absolute top-2 left-2 right-2 z-[1000] flex flex-col gap-1.5 pointer-events-auto">
         <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-0.5">
           {/* Layer Visibility Toggles */}
           <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-xs shadow-xl shrink-0">
+            {/* Live Radar Toggle */}
             <button
               onClick={() => setShowLiveRainViewer(!showLiveRainViewer)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold transition-all text-xs ${
@@ -480,16 +529,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }`}
-              title="Toggle Live RainViewer Composite Doppler Radar Tiles"
+              title="Toggle Live Real-Time Radar Reflectivity Overlay"
             >
               <span className={`w-1.5 h-1.5 rounded-full ${showLiveRainViewer ? 'bg-emerald-400 animate-ping' : 'bg-slate-600'}`}></span>
-              <Globe className="w-3.5 h-3.5" />
-              <span>RADAR TILES</span>
+              <CloudRain className="w-3.5 h-3.5" />
+              <span>RADAR OVERLAY</span>
             </button>
 
             <button
               onClick={() => setShowRadarRings(!showRadarRings)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
                 showRadarRings ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle DWR Range Rings (120km/220km sweeps)"
@@ -500,7 +549,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
             <button
               onClick={() => setShowSatelliteIR(!showSatelliteIR)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
                 showSatelliteIR ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle INSAT-3DR Deep Convection Infrared contours"
@@ -511,7 +560,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
             <button
               onClick={() => setShowLightning(!showLightning)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
                 showLightning ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle Lightning Discharges"
@@ -522,7 +571,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
             <button
               onClick={() => setShowStormCells(!showStormCells)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-colors text-xs ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors text-xs ${
                 showStormCells ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Toggle Convective Cell Footprints & Motion Vectors"
@@ -564,26 +613,155 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </div>
         </div>
 
-        {/* Live Radar Status Bar & Opacity Control */}
+        {/* Dynamic Real-Time Radar Player Bar */}
         {showLiveRainViewer && (
-          <div className="self-start bg-slate-950/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-slate-800 flex items-center gap-2 text-[11px] font-mono shadow-lg">
-            <div className="flex items-center gap-1.5 text-emerald-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <span className="font-bold">LIVE RADAR:</span>
-              <span className="text-slate-300">{formattedRadarTime ? `${formattedRadarTime} UTC` : 'Syncing...'}</span>
+          <div className="bg-slate-950/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-mono shadow-xl">
+            {/* Play/Pause & Live Frame Indicator */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className={`p-1.5 rounded-lg transition-all ${
+                  isPlaying 
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' 
+                    : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20'
+                }`}
+                title={isPlaying ? 'Pause Radar Loop Animation' : 'Play Radar Loop Animation'}
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+              </button>
+
+              <div className="flex items-center gap-1.5 text-emerald-300">
+                <span className={`w-2 h-2 rounded-full ${isLatestFrame ? 'bg-emerald-400 animate-ping' : 'bg-cyan-400'}`}></span>
+                <span className="font-bold text-white">{getRelativeFrameLabel()}</span>
+                <span className="text-slate-400 text-[11px]">({formattedRadarTime || 'Syncing...'})</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1 text-slate-400 border-l border-slate-800 pl-2">
-              <span className="text-[10px]">Opacity:</span>
+            {/* Radar Timeline Frame Slider */}
+            <div className="flex items-center gap-2 flex-1 max-w-[200px] sm:max-w-xs mx-1">
               <input
                 type="range"
-                min="0.3"
-                max="1.0"
-                step="0.05"
-                value={radarOpacity}
-                onChange={(e) => setRadarOpacity(parseFloat(e.target.value))}
-                className="w-14 accent-emerald-400 h-1 bg-slate-800 rounded cursor-pointer"
+                min="0"
+                max={Math.max(0, radarFrames.length - 1)}
+                value={currentFrameIndex >= 0 ? currentFrameIndex : 0}
+                onChange={(e) => {
+                  setIsPlaying(false); // Pause on manual scrub
+                  setCurrentFrameIndex(parseInt(e.target.value, 10));
+                }}
+                className="w-full accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                title="Scrub Radar Timeline (Past 2 Hours Doppler Scans)"
               />
+              <span className="text-[10px] text-slate-400 shrink-0">
+                {currentFrameIndex + 1}/{radarFrames.length}
+              </span>
+            </div>
+
+            {/* Quick Controls: Speed, Opacity, Settings Dropdown */}
+            <div className="flex items-center gap-2">
+              {/* Playback speed pills */}
+              <div className="hidden sm:flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-[10px]">
+                <button
+                  onClick={() => setPlaybackSpeed(1400)}
+                  className={`px-1.5 py-0.5 rounded ${playbackSpeed === 1400 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'}`}
+                >
+                  0.5x
+                </button>
+                <button
+                  onClick={() => setPlaybackSpeed(800)}
+                  className={`px-1.5 py-0.5 rounded ${playbackSpeed === 800 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'}`}
+                >
+                  1x
+                </button>
+                <button
+                  onClick={() => setPlaybackSpeed(400)}
+                  className={`px-1.5 py-0.5 rounded ${playbackSpeed === 400 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'}`}
+                >
+                  2x
+                </button>
+              </div>
+
+              {/* Refresh radar button */}
+              <button
+                onClick={fetchRainViewerMaps}
+                disabled={isLoadingRadar}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                title="Fetch Latest Real-time Radar Scan from Open API"
+              >
+                <RotateCw className={`w-3.5 h-3.5 ${isLoadingRadar ? 'animate-spin text-cyan-400' : ''}`} />
+              </button>
+
+              {/* Toggle Advanced Radar Settings Panel */}
+              <button
+                onClick={() => setShowAdvancedRadarPanel(!showAdvancedRadarPanel)}
+                className={`p-1 rounded flex items-center gap-1 transition-colors ${
+                  showAdvancedRadarPanel ? 'bg-cyan-500/20 text-cyan-300' : 'text-slate-400 hover:text-white'
+                }`}
+                title="Radar Color Palette & Opacity Settings"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                {showAdvancedRadarPanel ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Advanced Dynamic Radar Controls Dropdown */}
+        {showLiveRainViewer && showAdvancedRadarPanel && (
+          <div className="bg-slate-950/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 space-y-2.5 text-xs font-mono shadow-2xl animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-800">
+              <span className="text-white font-bold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                Dynamic Radar Reflectivity Layer Configuration
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold">Open Weather Radar API Feed (WMO)</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Color Scheme */}
+              <div className="space-y-1">
+                <span className="text-slate-400 text-[10px] block">REFLECTIVITY PALETTE:</span>
+                <select
+                  value={colorScheme}
+                  onChange={(e) => setColorScheme(parseInt(e.target.value, 10))}
+                  className="w-full bg-slate-900 border border-slate-800 text-slate-200 rounded-lg p-1.5 text-xs outline-none focus:border-cyan-400"
+                >
+                  {COLOR_SCHEMES.map(cs => (
+                    <option key={cs.id} value={cs.id}>{cs.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Opacity Slider */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] text-slate-400">
+                  <span>LAYER OPACITY:</span>
+                  <span className="text-cyan-300">{Math.round(radarOpacity * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.2"
+                  max="1.0"
+                  step="0.05"
+                  value={radarOpacity}
+                  onChange={(e) => setRadarOpacity(parseFloat(e.target.value))}
+                  className="w-full accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Smoothing mode */}
+              <div className="space-y-1">
+                <span className="text-slate-400 text-[10px] block">RADAR PROCESSING:</span>
+                <button
+                  onClick={() => setSmoothRadar(!smoothRadar)}
+                  className={`w-full py-1.5 px-2 rounded-lg text-xs font-bold transition-all border ${
+                    smoothRadar 
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' 
+                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                  }`}
+                >
+                  {smoothRadar ? '✓ Spatial Interpolation (Smooth)' : 'Raw Doppler Pixels'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -594,7 +772,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 shadow-2xl">
           <span className="text-[10px] font-mono text-slate-400 px-1.5 font-semibold flex items-center gap-1">
             <Compass className="w-3 h-3 text-cyan-400" />
-            <span className="hidden sm:inline">HORIZON:</span>
+            <span className="hidden sm:inline">NOWCAST:</span>
           </span>
           {horizonOptions.map((min) => {
             const isSelected = selectedHorizonMinutes === min;
@@ -614,16 +792,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           })}
         </div>
 
-        {/* Radar dBZ Reflectivity Scale Legend */}
+        {/* Doppler dBZ Reflectivity Scale Legend */}
         <div className="hidden sm:flex items-center gap-1 bg-slate-900/95 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-300 shadow-2xl">
-          <span className="text-slate-400">dBZ:</span>
+          <span className="text-slate-400">dBZ SCALE:</span>
           <div className="flex items-center gap-0.5">
-            <span className="px-1 py-0.5 bg-blue-600 text-white rounded-l">15</span>
-            <span className="px-1 py-0.5 bg-cyan-500 text-slate-950 font-bold">25</span>
-            <span className="px-1 py-0.5 bg-green-500 text-slate-950 font-bold">35</span>
-            <span className="px-1 py-0.5 bg-yellow-400 text-slate-950 font-bold">45</span>
-            <span className="px-1 py-0.5 bg-red-600 text-white font-bold">55</span>
-            <span className="px-1.5 py-0.5 bg-purple-600 text-white font-bold rounded-r">65+</span>
+            <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded-l text-[9px]">15 LGT</span>
+            <span className="px-1.5 py-0.5 bg-cyan-500 text-slate-950 font-bold text-[9px]">25 MOD</span>
+            <span className="px-1.5 py-0.5 bg-green-500 text-slate-950 font-bold text-[9px]">35 HVY</span>
+            <span className="px-1.5 py-0.5 bg-yellow-400 text-slate-950 font-bold text-[9px]">45 SVR</span>
+            <span className="px-1.5 py-0.5 bg-red-600 text-white font-bold text-[9px]">55 VIO</span>
+            <span className="px-1.5 py-0.5 bg-purple-600 text-white font-bold rounded-r text-[9px]">65+ HAIL</span>
           </div>
         </div>
       </div>
