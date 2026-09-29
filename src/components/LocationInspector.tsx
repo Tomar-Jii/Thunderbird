@@ -30,12 +30,34 @@ interface LocationInspectorProps {
 }
 
 const PRESET_COORDS = [
-  { id: 'bhopal', name: 'Bhopal (MP Radar)', lat: 23.25, lon: 77.41 },
-  { id: 'berlin', name: 'Berlin (User API: 52.52, 13.41)', lat: 52.52, lon: 13.41 },
-  { id: 'kolkata', name: 'Kolkata (Kalbaishakhi)', lat: 22.57, lon: 88.36 },
-  { id: 'delhi', name: 'Delhi NCR (Safdarjung)', lat: 28.61, lon: 77.20 },
-  { id: 'mumbai', name: 'Mumbai (Santacruz)', lat: 19.07, lon: 72.87 },
-  { id: 'bengaluru', name: 'Bengaluru (HAL)', lat: 12.97, lon: 77.59 }
+  // Madhya Pradesh Regional Radars & Districts
+  { id: 'bhopal', name: 'Bhopal (DWR S-Band)', lat: 23.25, lon: 77.41 },
+  { id: 'indore', name: 'Indore (DWR C-Band)', lat: 22.72, lon: 75.86 },
+  { id: 'jabalpur', name: 'Jabalpur (Mahakoshal)', lat: 23.18, lon: 79.99 },
+  { id: 'gwalior', name: 'Gwalior (Chambal Belt)', lat: 26.22, lon: 78.18 },
+  { id: 'ujjain', name: 'Ujjain (Shipra Valley)', lat: 23.18, lon: 75.79 },
+  { id: 'sagar', name: 'Sagar (Bundelkhand)', lat: 23.84, lon: 78.74 },
+  { id: 'narmadapuram', name: 'Narmadapuram (Hoshangabad)', lat: 22.75, lon: 77.73 },
+  { id: 'rewa', name: 'Rewa (Vindhya Plateau)', lat: 24.54, lon: 81.30 },
+  { id: 'satna', name: 'Satna (Limestone Belt)', lat: 24.60, lon: 80.83 },
+  { id: 'chhindwara', name: 'Chhindwara (Satpura)', lat: 22.06, lon: 78.94 },
+  { id: 'ratlam', name: 'Ratlam (Malwa Rail Hub)', lat: 23.33, lon: 75.04 },
+  { id: 'dewas', name: 'Dewas (Convective Arc)', lat: 22.97, lon: 76.05 },
+  { id: 'pachmarhi', name: 'Pachmarhi Hill Station (1067m)', lat: 22.47, lon: 78.43 },
+  { id: 'khajuraho', name: 'Khajuraho (Heritage Radar)', lat: 24.83, lon: 79.92 },
+  { id: 'singrauli', name: 'Singrauli (Thermal Basin)', lat: 24.20, lon: 82.66 },
+  { id: 'betul', name: 'Betul (Satpura Ridge)', lat: 21.90, lon: 77.90 },
+
+  // Pan-India Convective Hubs
+  { id: 'kolkata', name: 'Kolkata (Kalbaishakhi / Nor\'wester)', lat: 22.57, lon: 88.36 },
+  { id: 'delhi', name: 'Delhi NCR (Safdarjung DWR)', lat: 28.61, lon: 77.20 },
+  { id: 'mumbai', name: 'Mumbai Metro (Santacruz Coastal)', lat: 19.07, lon: 72.87 },
+  { id: 'bengaluru', name: 'Bengaluru (Deccan Plateau)', lat: 12.97, lon: 77.59 },
+  { id: 'hyderabad', name: 'Hyderabad (Telangana Dryline)', lat: 17.38, lon: 78.48 },
+  { id: 'nagpur', name: 'Nagpur (Central S-Band Radar)', lat: 21.15, lon: 79.09 },
+  { id: 'guwahati', name: 'Guwahati (Brahmaputra Basin)', lat: 26.14, lon: 91.74 },
+  { id: 'jaipur', name: 'Jaipur (Aravalli Squall)', lat: 26.91, lon: 75.79 },
+  { id: 'patna', name: 'Patna (Gangetic Lightning Belt)', lat: 25.59, lon: 85.14 }
 ];
 
 export const LocationInspector: React.FC<LocationInspectorProps> = ({

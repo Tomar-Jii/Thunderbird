@@ -32,14 +32,57 @@ interface InteractiveMapProps {
   currentRisk: RiskLevel;
 }
 
-const MP_LOCATIONS = [
-  { id: 'bhopal', name: 'Bhopal (DWR)', lat: 23.2599, lon: 77.4126, risk: 'SEVERE' as RiskLevel, dbz: 54 },
-  { id: 'indore', name: 'Indore (DWR)', lat: 22.7196, lon: 75.8577, risk: 'HIGH' as RiskLevel, dbz: 48 },
-  { id: 'jabalpur', name: 'Jabalpur', lat: 23.1815, lon: 79.9864, risk: 'MODERATE' as RiskLevel, dbz: 38 },
-  { id: 'gwalior', name: 'Gwalior', lat: 26.2183, lon: 78.1828, risk: 'LOW' as RiskLevel, dbz: 22 },
-  { id: 'ujjain', name: 'Ujjain', lat: 23.1765, lon: 75.7885, risk: 'HIGH' as RiskLevel, dbz: 45 },
-  { id: 'sagar', name: 'Sagar', lat: 23.8388, lon: 78.7378, risk: 'MODERATE' as RiskLevel, dbz: 34 },
-  { id: 'narmadapuram', name: 'Narmadapuram', lat: 22.7519, lon: 77.7289, risk: 'HIGH' as RiskLevel, dbz: 46 }
+export interface MapStationLocation {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  risk: RiskLevel;
+  dbz: number;
+  category: 'MP' | 'NATIONAL';
+  subtext: string;
+}
+
+export const ALL_LOCATIONS: MapStationLocation[] = [
+  // --- Madhya Pradesh Convective Corridor (26 Stations) ---
+  { id: 'bhopal', name: 'Bhopal (DWR)', lat: 23.2599, lon: 77.4126, risk: 'SEVERE', dbz: 54, category: 'MP', subtext: 'S-Band Radar HQ' },
+  { id: 'indore', name: 'Indore (DWR)', lat: 22.7196, lon: 75.8577, risk: 'HIGH', dbz: 48, category: 'MP', subtext: 'C-Band Radar' },
+  { id: 'jabalpur', name: 'Jabalpur', lat: 23.1815, lon: 79.9864, risk: 'MODERATE', dbz: 38, category: 'MP', subtext: 'Mahakoshal Basin' },
+  { id: 'gwalior', name: 'Gwalior', lat: 26.2183, lon: 78.1828, risk: 'LOW', dbz: 22, category: 'MP', subtext: 'Chambal Belt' },
+  { id: 'ujjain', name: 'Ujjain', lat: 23.1765, lon: 75.7885, risk: 'HIGH', dbz: 47, category: 'MP', subtext: 'Shipra Basin' },
+  { id: 'sagar', name: 'Sagar', lat: 23.8388, lon: 78.7378, risk: 'MODERATE', dbz: 34, category: 'MP', subtext: 'Bundelkhand' },
+  { id: 'narmadapuram', name: 'Narmadapuram', lat: 22.7519, lon: 77.7289, risk: 'HIGH', dbz: 46, category: 'MP', subtext: 'Hoshangabad Valley' },
+  { id: 'rewa', name: 'Rewa', lat: 24.5362, lon: 81.3037, risk: 'HIGH', dbz: 44, category: 'MP', subtext: 'Vindhya Plateau' },
+  { id: 'satna', name: 'Satna', lat: 24.6005, lon: 80.8322, risk: 'MODERATE', dbz: 36, category: 'MP', subtext: 'Limestone Corridor' },
+  { id: 'chhindwara', name: 'Chhindwara', lat: 22.0574, lon: 78.9382, risk: 'SEVERE', dbz: 52, category: 'MP', subtext: 'Satpura Ridge' },
+  { id: 'ratlam', name: 'Ratlam', lat: 23.3315, lon: 75.0367, risk: 'MODERATE', dbz: 37, category: 'MP', subtext: 'Malwa West' },
+  { id: 'dewas', name: 'Dewas', lat: 22.9676, lon: 76.0534, risk: 'HIGH', dbz: 45, category: 'MP', subtext: 'Industrial Arc' },
+  { id: 'shivpuri', name: 'Shivpuri', lat: 25.4358, lon: 77.6635, risk: 'LOW', dbz: 24, category: 'MP', subtext: 'Madhav Sector' },
+  { id: 'vidisha', name: 'Vidisha', lat: 23.5251, lon: 77.8081, risk: 'HIGH', dbz: 43, category: 'MP', subtext: 'Betwa Basin' },
+  { id: 'damoh', name: 'Damoh', lat: 23.8323, lon: 79.4422, risk: 'MODERATE', dbz: 33, category: 'MP', subtext: 'Bundelkhand Gorge' },
+  { id: 'mandsaur', name: 'Mandsaur', lat: 24.0725, lon: 75.0682, risk: 'MODERATE', dbz: 35, category: 'MP', subtext: 'Malwa North' },
+  { id: 'khargone', name: 'Khargone', lat: 21.8234, lon: 75.6180, risk: 'MODERATE', dbz: 38, category: 'MP', subtext: 'West Nimar' },
+  { id: 'khandwa', name: 'Khandwa', lat: 21.8314, lon: 76.3498, risk: 'MODERATE', dbz: 39, category: 'MP', subtext: 'East Nimar' },
+  { id: 'sehore', name: 'Sehore', lat: 23.2031, lon: 77.0844, risk: 'HIGH', dbz: 44, category: 'MP', subtext: 'Central Agricultural' },
+  { id: 'singrauli', name: 'Singrauli', lat: 24.1997, lon: 82.6645, risk: 'HIGH', dbz: 46, category: 'MP', subtext: 'Thermal Basin' },
+  { id: 'neemuch', name: 'Neemuch', lat: 24.4725, lon: 74.8625, risk: 'LOW', dbz: 26, category: 'MP', subtext: 'Border Radar' },
+  { id: 'katni', name: 'Katni', lat: 23.8343, lon: 80.3957, risk: 'MODERATE', dbz: 35, category: 'MP', subtext: 'Bauxite Junction' },
+  { id: 'betul', name: 'Betul', lat: 21.9014, lon: 77.9014, risk: 'HIGH', dbz: 42, category: 'MP', subtext: 'Satpura Ghat' },
+  { id: 'balaghat', name: 'Balaghat', lat: 21.8129, lon: 80.1837, risk: 'HIGH', dbz: 47, category: 'MP', subtext: 'Wainganga Basin' },
+  { id: 'pachmarhi', name: 'Pachmarhi', lat: 22.4674, lon: 78.4346, risk: 'HIGH', dbz: 43, category: 'MP', subtext: 'Hill Station (1067m)' },
+  { id: 'khajuraho', name: 'Khajuraho', lat: 24.8318, lon: 79.9199, risk: 'LOW', dbz: 25, category: 'MP', subtext: 'Airport Radar Area' },
+
+  // --- Pan-India Metropolitan & High-Convection Hubs (10 Stations) ---
+  { id: 'delhi', name: 'Delhi NCR', lat: 28.6139, lon: 77.2090, risk: 'MODERATE', dbz: 34, category: 'NATIONAL', subtext: 'Safdarjung DWR' },
+  { id: 'kolkata', name: 'Kolkata', lat: 22.5726, lon: 88.3639, risk: 'SEVERE', dbz: 58, category: 'NATIONAL', subtext: 'Kalbaishakhi Nor\'wester' },
+  { id: 'mumbai', name: 'Mumbai Metro', lat: 19.0760, lon: 72.8777, risk: 'HIGH', dbz: 46, category: 'NATIONAL', subtext: 'Santacruz Coastal DWR' },
+  { id: 'bengaluru', name: 'Bengaluru', lat: 12.9716, lon: 77.5946, risk: 'LOW', dbz: 22, category: 'NATIONAL', subtext: 'HAL Observatory' },
+  { id: 'hyderabad', name: 'Hyderabad', lat: 17.3850, lon: 78.4867, risk: 'MODERATE', dbz: 36, category: 'NATIONAL', subtext: 'Telangana Dryline' },
+  { id: 'chennai', name: 'Chennai', lat: 13.0827, lon: 80.2707, risk: 'LOW', dbz: 20, category: 'NATIONAL', subtext: 'Coromandel Radar' },
+  { id: 'nagpur', name: 'Nagpur', lat: 21.1458, lon: 79.0882, risk: 'HIGH', dbz: 45, category: 'NATIONAL', subtext: 'Central S-Band DWR' },
+  { id: 'guwahati', name: 'Guwahati', lat: 26.1445, lon: 91.7362, risk: 'SEVERE', dbz: 56, category: 'NATIONAL', subtext: 'Brahmaputra Basin' },
+  { id: 'jaipur', name: 'Jaipur', lat: 26.9124, lon: 75.7873, risk: 'LOW', dbz: 28, category: 'NATIONAL', subtext: 'Aravalli Squall DWR' },
+  { id: 'patna', name: 'Patna', lat: 25.5941, lon: 85.1376, risk: 'HIGH', dbz: 48, category: 'NATIONAL', subtext: 'Gangetic Lightning Belt' }
 ];
 
 const COLOR_SCHEMES = [
@@ -87,6 +130,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [showSatelliteIR, setShowSatelliteIR] = useState(true);
   const [showLightning, setShowLightning] = useState(true);
   const [showStormCells, setShowStormCells] = useState(true);
+
+  // Station Filter & Search State
+  const [stationCategory, setStationCategory] = useState<'ALL' | 'MP' | 'NATIONAL'>('ALL');
+  const [stationSearch, setStationSearch] = useState<string>('');
 
   const horizonOptions = [0, 15, 30, 60, 90, 120];
 
@@ -459,8 +506,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       });
     }
 
-    // 5. Major City Observatories
-    MP_LOCATIONS.forEach((loc) => {
+    // 5. Active Weather Observatories & Convective Radar Network (36 Stations)
+    const filteredStations = ALL_LOCATIONS.filter(loc => {
+      if (stationCategory !== 'ALL' && loc.category !== stationCategory) return false;
+      if (stationSearch.trim()) {
+        const query = stationSearch.toLowerCase();
+        return loc.name.toLowerCase().includes(query) || loc.subtext.toLowerCase().includes(query);
+      }
+      return true;
+    });
+
+    filteredStations.forEach((loc) => {
       const isSelected = loc.id === selectedLocationId;
       let badgeColor = '#22c55e';
       if (loc.risk === 'SEVERE') badgeColor = '#f43f5e';
@@ -470,22 +526,24 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       const cityIcon = L.divIcon({
         className: 'city-marker',
         html: `
-          <div class="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold transition-all shadow-md cursor-pointer ${
+          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold transition-all shadow-md cursor-pointer whitespace-nowrap ${
             isSelected 
-              ? 'bg-cyan-500 text-slate-950 ring-2 ring-white scale-110' 
-              : 'bg-slate-900/90 text-slate-200 border border-slate-700 hover:border-cyan-400'
+              ? 'bg-cyan-500 text-slate-950 ring-2 ring-white scale-110 z-50' 
+              : 'bg-slate-900/90 text-slate-200 border border-slate-700/80 hover:border-cyan-400 hover:scale-105'
           }">
-            <span style="background-color: ${badgeColor}; width: 7px; height: 7px; border-radius: 50%;"></span>
+            <span style="background-color: ${badgeColor}; width: 6px; height: 6px; border-radius: 50%; shrink: 0;"></span>
             <span>${loc.name}</span>
+            <span class="text-[9px] opacity-75 font-normal">(${loc.dbz} dBZ)</span>
           </div>
         `,
-        iconSize: [90, 24],
-        iconAnchor: [45, 12]
+        iconSize: [110, 22],
+        iconAnchor: [55, 11]
       });
 
       const marker = L.marker([loc.lat, loc.lon], { icon: cityIcon }).addTo(group);
       marker.on('click', () => {
         onSelectLocation(loc.id);
+        map.flyTo([loc.lat, loc.lon], Math.max(map.getZoom(), 8), { duration: 0.6 });
       });
     });
 
@@ -498,6 +556,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     showSatelliteIR, 
     showLightning, 
     showStormCells, 
+    stationCategory,
+    stationSearch,
     onSelectLocation
   ]);
 
@@ -518,6 +578,71 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     <div className="relative rounded-2xl border border-slate-800 bg-[#070b14] overflow-hidden flex flex-col h-[580px] shadow-2xl">
       {/* Top Map HUD Controls - Mobile Responsive */}
       <div className="absolute top-2 left-2 right-2 z-[1000] flex flex-col gap-1.5 pointer-events-auto">
+        {/* Station Navigation & Category Filter Bar (36 Stations) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-950/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono shadow-xl">
+          <div className="flex items-center gap-1.5 flex-1 min-w-[220px]">
+            <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span className="text-slate-400 text-[10px] hidden sm:inline">OBSERVATORY:</span>
+            <select
+              value={selectedLocationId}
+              onChange={(e) => {
+                const locId = e.target.value;
+                onSelectLocation(locId);
+                const found = ALL_LOCATIONS.find(l => l.id === locId);
+                if (found && mapInstanceRef.current) {
+                  mapInstanceRef.current.flyTo([found.lat, found.lon], Math.max(mapInstanceRef.current.getZoom(), 8), { duration: 0.6 });
+                }
+              }}
+              className="bg-slate-900 border border-slate-700/80 text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-cyan-400 cursor-pointer font-bold flex-1 max-w-sm"
+              title="Select any of the 36 Weather Radar & District Stations across MP and India"
+            >
+              <optgroup label="Madhya Pradesh Districts (26 Stations)">
+                {ALL_LOCATIONS.filter(l => l.category === 'MP').map(l => (
+                  <option key={l.id} value={l.id}>
+                    📍 {l.name} — {l.risk} ({l.dbz} dBZ)
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Pan-India High-Convection Hubs (10 Stations)">
+                {ALL_LOCATIONS.filter(l => l.category === 'NATIONAL').map(l => (
+                  <option key={l.id} value={l.id}>
+                    📡 {l.name} — {l.risk} ({l.dbz} dBZ)
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+
+          {/* Quick Category Filter Pills */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-slate-500 hidden md:inline">RADAR PINS:</span>
+            <button
+              onClick={() => setStationCategory('ALL')}
+              className={`px-2 py-0.5 rounded text-[10px] transition-colors cursor-pointer ${
+                stationCategory === 'ALL' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              All (36)
+            </button>
+            <button
+              onClick={() => setStationCategory('MP')}
+              className={`px-2 py-0.5 rounded text-[10px] transition-colors cursor-pointer ${
+                stationCategory === 'MP' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              MP Districts (26)
+            </button>
+            <button
+              onClick={() => setStationCategory('NATIONAL')}
+              className={`px-2 py-0.5 rounded text-[10px] transition-colors cursor-pointer ${
+                stationCategory === 'NATIONAL' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              National (10)
+            </button>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-0.5">
           {/* Layer Visibility Toggles */}
           <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-xs shadow-xl shrink-0">

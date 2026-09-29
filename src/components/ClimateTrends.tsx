@@ -57,10 +57,16 @@ const HEATMAP_MATRIX: Record<number, number[]> = {
 const DISTRICT_VULNERABILITY = [
   { name: 'Bhopal Central', trendPct: '+118%', peakMonths: 'May - Jul', riskScore: 89, primaryDriver: 'Urban Heat Island + Dam Reservoir Vapor Flux' },
   { name: 'Indore Metro', trendPct: '+105%', peakMonths: 'Jun - Aug', riskScore: 84, primaryDriver: 'Malwa Plateau Convective Convergence' },
-  { name: 'Jabalpur Basin', trendPct: '+132%', peakMonths: 'Jun - Sep', riskScore: 92, primaryDriver: 'Narmada Valley Orograhic Moisture Channeling' },
+  { name: 'Jabalpur Basin', trendPct: '+132%', peakMonths: 'Jun - Sep', riskScore: 92, primaryDriver: 'Narmada Valley Orographic Moisture Channeling' },
   { name: 'Gwalior North', trendPct: '+82%', peakMonths: 'Apr - Jun', riskScore: 76, primaryDriver: 'Pre-Monsoon Dryline Instability & Severe Hail' },
+  { name: 'Ujjain Division', trendPct: '+112%', peakMonths: 'May - Jul', riskScore: 86, primaryDriver: 'Shipra Basin Micro-convective Rapid Initiation' },
+  { name: 'Rewa Vindhya', trendPct: '+128%', peakMonths: 'Jun - Sep', riskScore: 89, primaryDriver: 'Elevated Plateau Lightning Ground Strike Density' },
+  { name: 'Chhindwara Satpura', trendPct: '+136%', peakMonths: 'May - Aug', riskScore: 94, primaryDriver: 'Satpura Ridge Orographic Uplift & Heavy Squall Lines' },
   { name: 'Sagar Bundelkhand', trendPct: '+96%', peakMonths: 'May - Jul', riskScore: 81, primaryDriver: 'High Thermal Radiation & Sudden Squall Lines' },
-  { name: 'Narmadapuram', trendPct: '+124%', peakMonths: 'Jun - Aug', riskScore: 88, primaryDriver: 'Satpura Foothill Microbursts & Flash Flooding' }
+  { name: 'Narmadapuram', trendPct: '+124%', peakMonths: 'Jun - Aug', riskScore: 88, primaryDriver: 'Satpura Foothill Microbursts & Flash Flooding' },
+  { name: 'Pachmarhi Plateau', trendPct: '+142%', peakMonths: 'Jul - Sep', riskScore: 91, primaryDriver: 'High Altitude Cloud Condensation Level (>1000m)' },
+  { name: 'Kolkata Delta', trendPct: '+148%', peakMonths: 'Mar - May', riskScore: 96, primaryDriver: 'Kalbaishakhi Supercell Influx from Chota Nagpur' },
+  { name: 'Delhi NCR Belt', trendPct: '+90%', peakMonths: 'May - Jul', riskScore: 79, primaryDriver: 'Pre-Monsoon Dust-Convective Squall Interaction' }
 ];
 
 export const ClimateTrends: React.FC = () => {

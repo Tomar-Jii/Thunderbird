@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { KpiMetrics } from './components/KpiMetrics';
-import { InteractiveMap } from './components/InteractiveMap';
+import { InteractiveMap, ALL_LOCATIONS } from './components/InteractiveMap';
 import { LocationInspector } from './components/LocationInspector';
 import { ForecastEvolutionChart } from './components/ForecastEvolutionChart';
 import { ExplainableAiPanel } from './components/ExplainableAiPanel';
@@ -33,7 +33,8 @@ import {
   Radio, 
   Wind, 
   CloudRain, 
-  Sparkles 
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import { SoundingProfile } from './components/SoundingProfile';
 import { TacticalAviationGrid } from './components/TacticalAviationGrid';
@@ -315,6 +316,83 @@ export default function App() {
             </button>
           </div>
         )}
+
+        {/* Pan-Regional Weather Radar & District Observatory Quick Bar (36 Stations) */}
+        <div className="p-3 rounded-2xl bg-[#090f1d] border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold shrink-0">
+              <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+              <span>ACTIVE STATION:</span>
+            </div>
+
+            <select
+              value={selectedLocationId}
+              onChange={(e) => setSelectedLocationId(e.target.value)}
+              className="bg-slate-900 border border-slate-700 text-white font-bold rounded-lg px-2.5 py-1 text-xs outline-none focus:border-cyan-400 cursor-pointer shadow-sm min-w-[240px]"
+              title="Switch live nowcast telemetry across 36 active stations in Madhya Pradesh and Pan-India"
+            >
+              <optgroup label="Madhya Pradesh Districts (26 Stations)">
+                {ALL_LOCATIONS.filter(l => l.category === 'MP').map(l => (
+                  <option key={l.id} value={l.id}>
+                    📍 {l.name} — {l.risk} ({l.dbz} dBZ)
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Pan-India High-Convection Hubs (10 Stations)">
+                {ALL_LOCATIONS.filter(l => l.category === 'NATIONAL').map(l => (
+                  <option key={l.id} value={l.id}>
+                    📡 {l.name} — {l.risk} ({l.dbz} dBZ)
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+
+            <span className="text-[11px] text-slate-400 hidden xl:inline">
+              36 Live Convective Doppler Radars & AWS Stations Operational
+            </span>
+          </div>
+
+          {/* Quick-Click Hotspot Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider shrink-0 mr-0.5">Quick Jump:</span>
+            {[
+              { id: 'bhopal', label: 'Bhopal (DWR)', risk: 'SEVERE' },
+              { id: 'indore', label: 'Indore (DWR)', risk: 'HIGH' },
+              { id: 'ujjain', label: 'Ujjain', risk: 'HIGH' },
+              { id: 'rewa', label: 'Rewa', risk: 'HIGH' },
+              { id: 'chhindwara', label: 'Chhindwara', risk: 'SEVERE' },
+              { id: 'narmadapuram', label: 'Narmadapuram', risk: 'HIGH' },
+              { id: 'jabalpur', label: 'Jabalpur', risk: 'MODERATE' },
+              { id: 'gwalior', label: 'Gwalior', risk: 'LOW' },
+              { id: 'pachmarhi', label: 'Pachmarhi', risk: 'HIGH' },
+              { id: 'kolkata', label: 'Kolkata', risk: 'SEVERE' },
+              { id: 'delhi', label: 'Delhi NCR', risk: 'MODERATE' },
+              { id: 'mumbai', label: 'Mumbai', risk: 'HIGH' },
+              { id: 'nagpur', label: 'Nagpur', risk: 'HIGH' }
+            ].map(chip => {
+              const isSelected = selectedLocationId === chip.id;
+              let dotColor = '#22c55e';
+              if (chip.risk === 'SEVERE') dotColor = '#f43f5e';
+              else if (chip.risk === 'HIGH') dotColor = '#f97316';
+              else if (chip.risk === 'MODERATE') dotColor = '#eab308';
+
+              return (
+                <button
+                  key={chip.id}
+                  onClick={() => setSelectedLocationId(chip.id)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 scale-105'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                  }`}
+                >
+                  <span style={{ backgroundColor: dotColor, width: '6px', height: '6px', borderRadius: '50%' }}></span>
+                  <span>{chip.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Top KPI Metrics Bar (Visible across main view) */}
         {forecast && (

@@ -24,16 +24,47 @@ app.use((req, res, next) => {
   next();
 });
 
-// Primary Central India / MP Locations
-const LOCATIONS: Record<string, { id: string; name: string; state: string; lat: number; lon: number; elevation: number }> = {
-  bhopal: { id: 'bhopal', name: 'Bhopal Central', state: 'Madhya Pradesh', lat: 23.2599, lon: 77.4126, elevation: 527 },
-  indore: { id: 'indore', name: 'Indore Metro', state: 'Madhya Pradesh', lat: 22.7196, lon: 75.8577, elevation: 553 },
-  jabalpur: { id: 'jabalpur', name: 'Jabalpur East', state: 'Madhya Pradesh', lat: 23.1815, lon: 79.9864, elevation: 411 },
-  gwalior: { id: 'gwalior', name: 'Gwalior North', state: 'Madhya Pradesh', lat: 26.2183, lon: 78.1828, elevation: 197 },
-  ujjain: { id: 'ujjain', name: 'Ujjain Division', state: 'Madhya Pradesh', lat: 23.1765, lon: 75.7885, elevation: 494 },
-  sagar: { id: 'sagar', name: 'Sagar Bundelkhand', state: 'Madhya Pradesh', lat: 23.8388, lon: 78.7378, elevation: 538 },
-  narmadapuram: { id: 'narmadapuram', name: 'Narmadapuram Valley', state: 'Madhya Pradesh', lat: 22.7519, lon: 77.7289, elevation: 285 },
-  nagpur: { id: 'nagpur', name: 'Nagpur Border Radar Area', state: 'Maharashtra / MP Border', lat: 21.1458, lon: 79.0882, elevation: 310 }
+// Primary Central India / MP Locations & National Convective Radars (36 Stations)
+const LOCATIONS: Record<string, { id: string; name: string; state: string; lat: number; lon: number; elevation: number; zone: string }> = {
+  // --- Madhya Pradesh Districts (26 Stations) ---
+  bhopal: { id: 'bhopal', name: 'Bhopal Central (DWR S-Band)', state: 'Madhya Pradesh', lat: 23.2599, lon: 77.4126, elevation: 527, zone: 'Bhopal Division' },
+  indore: { id: 'indore', name: 'Indore Metro (DWR C-Band)', state: 'Madhya Pradesh', lat: 22.7196, lon: 75.8577, elevation: 553, zone: 'Indore Division' },
+  jabalpur: { id: 'jabalpur', name: 'Jabalpur East (Mahakoshal)', state: 'Madhya Pradesh', lat: 23.1815, lon: 79.9864, elevation: 411, zone: 'Jabalpur Division' },
+  gwalior: { id: 'gwalior', name: 'Gwalior North (Chambal Belt)', state: 'Madhya Pradesh', lat: 26.2183, lon: 78.1828, elevation: 197, zone: 'Gwalior Division' },
+  ujjain: { id: 'ujjain', name: 'Ujjain Mahakal Division', state: 'Madhya Pradesh', lat: 23.1765, lon: 75.7885, elevation: 494, zone: 'Ujjain Division' },
+  sagar: { id: 'sagar', name: 'Sagar Bundelkhand', state: 'Madhya Pradesh', lat: 23.8388, lon: 78.7378, elevation: 538, zone: 'Sagar Division' },
+  narmadapuram: { id: 'narmadapuram', name: 'Narmadapuram (Hoshangabad Valley)', state: 'Madhya Pradesh', lat: 22.7519, lon: 77.7289, elevation: 285, zone: 'Narmadapuram Division' },
+  rewa: { id: 'rewa', name: 'Rewa Vindhya Plateau', state: 'Madhya Pradesh', lat: 24.5362, lon: 81.3037, elevation: 316, zone: 'Rewa Division' },
+  satna: { id: 'satna', name: 'Satna Limestone Corridor', state: 'Madhya Pradesh', lat: 24.6005, lon: 80.8322, elevation: 315, zone: 'Rewa Division' },
+  chhindwara: { id: 'chhindwara', name: 'Chhindwara Satpura Highlands', state: 'Madhya Pradesh', lat: 22.0574, lon: 78.9382, elevation: 675, zone: 'Jabalpur Division' },
+  ratlam: { id: 'ratlam', name: 'Ratlam Malwa Junction', state: 'Madhya Pradesh', lat: 23.3315, lon: 75.0367, elevation: 488, zone: 'Ujjain Division' },
+  dewas: { id: 'dewas', name: 'Dewas Industrial Belt', state: 'Madhya Pradesh', lat: 22.9676, lon: 76.0534, elevation: 535, zone: 'Ujjain Division' },
+  shivpuri: { id: 'shivpuri', name: 'Shivpuri Madhav Sector', state: 'Madhya Pradesh', lat: 25.4358, lon: 77.6635, elevation: 468, zone: 'Gwalior Division' },
+  vidisha: { id: 'vidisha', name: 'Vidisha Betwa Basin', state: 'Madhya Pradesh', lat: 23.5251, lon: 77.8081, elevation: 428, zone: 'Bhopal Division' },
+  damoh: { id: 'damoh', name: 'Damoh Bundelkhand Gorge', state: 'Madhya Pradesh', lat: 23.8323, lon: 79.4422, elevation: 395, zone: 'Sagar Division' },
+  mandsaur: { id: 'mandsaur', name: 'Mandsaur Malwa North', state: 'Madhya Pradesh', lat: 24.0725, lon: 75.0682, elevation: 440, zone: 'Ujjain Division' },
+  khargone: { id: 'khargone', name: 'Khargone West Nimar', state: 'Madhya Pradesh', lat: 21.8234, lon: 75.6180, elevation: 258, zone: 'Indore Division' },
+  khandwa: { id: 'khandwa', name: 'Khandwa East Nimar', state: 'Madhya Pradesh', lat: 21.8314, lon: 76.3498, elevation: 313, zone: 'Indore Division' },
+  sehore: { id: 'sehore', name: 'Sehore Agricultural Basin', state: 'Madhya Pradesh', lat: 23.2031, lon: 77.0844, elevation: 502, zone: 'Bhopal Division' },
+  singrauli: { id: 'singrauli', name: 'Singrauli Thermal Basin', state: 'Madhya Pradesh', lat: 24.1997, lon: 82.6645, elevation: 376, zone: 'Rewa Division' },
+  neemuch: { id: 'neemuch', name: 'Neemuch Border Radar Sector', state: 'Madhya Pradesh', lat: 24.4725, lon: 74.8625, elevation: 452, zone: 'Ujjain Division' },
+  katni: { id: 'katni', name: 'Katni Bauxite Junction', state: 'Madhya Pradesh', lat: 23.8343, lon: 80.3957, elevation: 392, zone: 'Jabalpur Division' },
+  betul: { id: 'betul', name: 'Betul Satpura Ridge', state: 'Madhya Pradesh', lat: 21.9014, lon: 77.9014, elevation: 658, zone: 'Narmadapuram Division' },
+  balaghat: { id: 'balaghat', name: 'Balaghat Wainganga Basin', state: 'Madhya Pradesh', lat: 21.8129, lon: 80.1837, elevation: 288, zone: 'Jabalpur Division' },
+  pachmarhi: { id: 'pachmarhi', name: 'Pachmarhi Hill Observatory (1067m)', state: 'Madhya Pradesh', lat: 22.4674, lon: 78.4346, elevation: 1067, zone: 'Narmadapuram Division' },
+  khajuraho: { id: 'khajuraho', name: 'Khajuraho Airport Radar Area', state: 'Madhya Pradesh', lat: 24.8318, lon: 79.9199, elevation: 282, zone: 'Sagar Division' },
+
+  // --- Pan-India Metropolitan & High-Convection Radars (10 Stations) ---
+  delhi: { id: 'delhi', name: 'Delhi NCR (Safdarjung/Palam DWR)', state: 'Delhi NCR', lat: 28.6139, lon: 77.2090, elevation: 216, zone: 'Northern Plains' },
+  kolkata: { id: 'kolkata', name: 'Kolkata (Kalbaishakhi / Nor\'wester Hub)', state: 'West Bengal', lat: 22.5726, lon: 88.3639, elevation: 9, zone: 'Eastern Convective Corridor' },
+  mumbai: { id: 'mumbai', name: 'Mumbai Metro (Santacruz Coastal DWR)', state: 'Maharashtra', lat: 19.0760, lon: 72.8777, elevation: 14, zone: 'Western Ghats / Konkan' },
+  bengaluru: { id: 'bengaluru', name: 'Bengaluru (Deccan Convective Plateau)', state: 'Karnataka', lat: 12.9716, lon: 77.5946, elevation: 920, zone: 'Southern Peninsula' },
+  hyderabad: { id: 'hyderabad', name: 'Hyderabad (Telangana Dryline DWR)', state: 'Telangana', lat: 17.3850, lon: 78.4867, elevation: 542, zone: 'Deccan Plateau' },
+  chennai: { id: 'chennai', name: 'Chennai (Coromandel Coast Radar)', state: 'Tamil Nadu', lat: 13.0827, lon: 80.2707, elevation: 6, zone: 'Coromandel Coastal Belt' },
+  nagpur: { id: 'nagpur', name: 'Nagpur (Central India DWR S-Band)', state: 'Maharashtra / MP Border', lat: 21.1458, lon: 79.0882, elevation: 310, zone: 'Central India Corridor' },
+  guwahati: { id: 'guwahati', name: 'Guwahati (Brahmaputra Severe Basin)', state: 'Assam', lat: 26.1445, lon: 91.7362, elevation: 55, zone: 'Northeast Convective Zone' },
+  jaipur: { id: 'jaipur', name: 'Jaipur (Aravalli Dust & Thunderstorm DWR)', state: 'Rajasthan', lat: 26.9124, lon: 75.7873, elevation: 431, zone: 'Western Arid / Semi-Arid' },
+  patna: { id: 'patna', name: 'Patna (Gangetic Severe Lightning Belt)', state: 'Bihar', lat: 25.5941, lon: 85.1376, elevation: 53, zone: 'Middle Gangetic Plain' }
 };
 
 // In-memory simulation state
@@ -64,8 +95,8 @@ let activeAlerts: AlertItem[] = [
     locationName: 'Bhopal & Raisen District',
     severity: 'SEVERE',
     headline: 'Severe Thunderstorm & High-Frequency Lightning Warning',
-    riskProbabilityPct: 86,
-    confidencePct: 89,
+    riskProbabilityPct: 88,
+    confidencePct: 91,
     forecastWindowMinutes: 30,
     recommendedAction: 'Immediate shelter indoors. Cease open-field farming and ground operations. Stand clear of metallic towers.',
     createdAt: new Date(Date.now() - 8 * 60000).toISOString(),
@@ -79,8 +110,8 @@ let activeAlerts: AlertItem[] = [
     locationName: 'Indore & Dewas Sector',
     severity: 'WARNING',
     headline: 'Convective Cell Influx with Cloud-to-Ground Lightning',
-    riskProbabilityPct: 74,
-    confidencePct: 84,
+    riskProbabilityPct: 76,
+    confidencePct: 85,
     forecastWindowMinutes: 45,
     recommendedAction: 'Prepare airport diversion contingencies. Alert rural disaster management cells.',
     createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
@@ -94,8 +125,8 @@ let activeAlerts: AlertItem[] = [
     locationName: 'Jabalpur & Narmada Basin',
     severity: 'WATCH',
     headline: 'Developing Cumulonimbus Tower with Elevated CAPE (>2600 J/kg)',
-    riskProbabilityPct: 58,
-    confidencePct: 78,
+    riskProbabilityPct: 62,
+    confidencePct: 80,
     forecastWindowMinutes: 60,
     recommendedAction: 'Monitor radar reflectivity updates. Restrict high-altitude line maintenance.',
     createdAt: new Date(Date.now() - 22 * 60000).toISOString(),
@@ -109,12 +140,102 @@ let activeAlerts: AlertItem[] = [
     locationName: 'Gwalior Chambal Belt',
     severity: 'INFO',
     headline: 'Pre-convective Boundary Layer Moisture Convergence',
-    riskProbabilityPct: 32,
-    confidencePct: 75,
+    riskProbabilityPct: 35,
+    confidencePct: 76,
     forecastWindowMinutes: 90,
     recommendedAction: 'Advisory watch only. Standard AWS telemetry surveillance active.',
     createdAt: new Date(Date.now() - 35 * 60000).toISOString(),
     validUntil: new Date(Date.now() + 110 * 60000).toISOString(),
+    acknowledged: true,
+    dismissed: false
+  },
+  {
+    id: 'ALT-MP-2605',
+    locationId: 'ujjain',
+    locationName: 'Ujjain Mahakal Division',
+    severity: 'WARNING',
+    headline: 'Rapid Convective Initiation along Shipra River Corridor',
+    riskProbabilityPct: 79,
+    confidencePct: 88,
+    forecastWindowMinutes: 40,
+    recommendedAction: 'Direct temple queues under covered shelters. Halt outdoor crane operations.',
+    createdAt: new Date(Date.now() - 12 * 60000).toISOString(),
+    validUntil: new Date(Date.now() + 60 * 60000).toISOString(),
+    acknowledged: false,
+    dismissed: false
+  },
+  {
+    id: 'ALT-MP-2606',
+    locationId: 'rewa',
+    locationName: 'Rewa Vindhya Plateau',
+    severity: 'WARNING',
+    headline: 'High-Frequency Cloud-to-Ground Lightning Discharges (35/min)',
+    riskProbabilityPct: 71,
+    confidencePct: 82,
+    forecastWindowMinutes: 45,
+    recommendedAction: 'Alert agricultural workers to seek concrete shelter. Protect power grid substations.',
+    createdAt: new Date(Date.now() - 18 * 60000).toISOString(),
+    validUntil: new Date(Date.now() + 55 * 60000).toISOString(),
+    acknowledged: false,
+    dismissed: false
+  },
+  {
+    id: 'ALT-MP-2607',
+    locationId: 'chhindwara',
+    locationName: 'Chhindwara Satpura Ridge',
+    severity: 'SEVERE',
+    headline: 'Squall Line Gusts Exceeding 78 km/h & Microburst Risk',
+    riskProbabilityPct: 84,
+    confidencePct: 89,
+    forecastWindowMinutes: 25,
+    recommendedAction: 'Secure temporary tin roofs. Caution motorists on ghat sections against fallen trees.',
+    createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
+    validUntil: new Date(Date.now() + 45 * 60000).toISOString(),
+    acknowledged: false,
+    dismissed: false
+  },
+  {
+    id: 'ALT-MP-2608',
+    locationId: 'narmadapuram',
+    locationName: 'Narmadapuram Valley',
+    severity: 'WARNING',
+    headline: 'Intense Hydro-Convective Downpour (>45 mm/hr)',
+    riskProbabilityPct: 75,
+    confidencePct: 86,
+    forecastWindowMinutes: 50,
+    recommendedAction: 'Barricade low-lying causeways and river ghats. Activate flood rescue boats.',
+    createdAt: new Date(Date.now() - 28 * 60000).toISOString(),
+    validUntil: new Date(Date.now() + 70 * 60000).toISOString(),
+    acknowledged: false,
+    dismissed: false
+  },
+  {
+    id: 'ALT-NAT-2609',
+    locationId: 'kolkata',
+    locationName: 'Kolkata Gangetic Delta',
+    severity: 'SEVERE',
+    headline: 'Kalbaishakhi Nor\'wester Supercell with 2-inch Hail Shafts',
+    riskProbabilityPct: 92,
+    confidencePct: 94,
+    forecastWindowMinutes: 20,
+    recommendedAction: 'Ground ground-handling at Netaji Subhash Chandra Bose Airport. Shelter pedestrians.',
+    createdAt: new Date(Date.now() - 3 * 60000).toISOString(),
+    validUntil: new Date(Date.now() + 40 * 60000).toISOString(),
+    acknowledged: false,
+    dismissed: false
+  },
+  {
+    id: 'ALT-NAT-2610',
+    locationId: 'delhi',
+    locationName: 'Delhi NCR Region',
+    severity: 'WATCH',
+    headline: 'Dust-Raising Convective Squall Line Approaching from Southwest',
+    riskProbabilityPct: 54,
+    confidencePct: 77,
+    forecastWindowMinutes: 75,
+    recommendedAction: 'Advise Indira Gandhi Airport traffic management. Secure construction hoardings.',
+    createdAt: new Date(Date.now() - 40 * 60000).toISOString(),
+    validUntil: new Date(Date.now() + 90 * 60000).toISOString(),
     acknowledged: true,
     dismissed: false
   }
@@ -136,45 +257,96 @@ function getDeterministicLocationMetrics(locKey: string, timeOffsetMin = 0) {
   if (locKey === 'bhopal') {
     baseCape = 2850 + Math.sin(t) * 120;
     baseDbz = 52 + Math.cos(t) * 4;
-    baseStormProb = 86;
-    baseLightningProb = 84;
+    baseStormProb = 88;
+    baseLightningProb = 85;
     baseWind = 48;
     baseHumid = 87;
   } else if (locKey === 'indore') {
     baseCape = 2300 + Math.cos(t) * 150;
-    baseDbz = 45 + Math.sin(t) * 3;
-    baseStormProb = 72;
-    baseLightningProb = 68;
-    baseWind = 36;
-    baseHumid = 79;
+    baseDbz = 46 + Math.sin(t) * 3;
+    baseStormProb = 76;
+    baseLightningProb = 72;
+    baseWind = 38;
+    baseHumid = 80;
   } else if (locKey === 'jabalpur') {
-    baseCape = 2150;
-    baseDbz = 38;
-    baseStormProb = 56;
-    baseLightningProb = 52;
-    baseWind = 28;
-    baseHumid = 76;
+    baseCape = 2550 + Math.sin(t * 1.2) * 140;
+    baseDbz = 44 + Math.cos(t) * 3;
+    baseStormProb = 68;
+    baseLightningProb = 64;
+    baseWind = 32;
+    baseHumid = 82;
   } else if (locKey === 'gwalior') {
-    baseCape = 1450;
-    baseDbz = 24;
-    baseStormProb = 31;
-    baseLightningProb = 26;
-    baseWind = 22;
-    baseHumid = 64;
+    baseCape = 1650 + Math.cos(t) * 90;
+    baseDbz = 28 + Math.sin(t) * 2;
+    baseStormProb = 38;
+    baseLightningProb = 32;
+    baseWind = 24;
+    baseHumid = 66;
   } else if (locKey === 'ujjain') {
-    baseCape = 2400;
-    baseDbz = 44;
-    baseStormProb = 69;
-    baseLightningProb = 65;
+    baseCape = 2480 + Math.sin(t * 0.9) * 130;
+    baseDbz = 47 + Math.cos(t) * 3;
+    baseStormProb = 78;
+    baseLightningProb = 74;
+    baseWind = 36;
+    baseHumid = 83;
+  } else if (locKey === 'rewa') {
+    baseCape = 2410 + Math.cos(t) * 110;
+    baseDbz = 45;
+    baseStormProb = 71;
+    baseLightningProb = 76;
     baseWind = 34;
-    baseHumid = 81;
+    baseHumid = 79;
+  } else if (locKey === 'chhindwara') {
+    baseCape = 2780 + Math.sin(t) * 160;
+    baseDbz = 51;
+    baseStormProb = 84;
+    baseLightningProb = 81;
+    baseWind = 54;
+    baseHumid = 89;
+  } else if (locKey === 'narmadapuram') {
+    baseCape = 2650;
+    baseDbz = 48;
+    baseStormProb = 79;
+    baseLightningProb = 75;
+    baseWind = 42;
+    baseHumid = 86;
+  } else if (locKey === 'kolkata') {
+    baseCape = 3450 + Math.sin(t) * 200; // Classic Nor'wester / Kalbaishakhi CAPE
+    baseDbz = 58;
+    baseStormProb = 93;
+    baseLightningProb = 92;
+    baseWind = 62;
+    baseHumid = 92;
+  } else if (locKey === 'delhi') {
+    baseCape = 1950 + Math.cos(t) * 120;
+    baseDbz = 34;
+    baseStormProb = 52;
+    baseLightningProb = 46;
+    baseWind = 38;
+    baseHumid = 68;
+  } else if (locKey === 'mumbai') {
+    baseCape = 2750;
+    baseDbz = 46;
+    baseStormProb = 74;
+    baseLightningProb = 65;
+    baseWind = 44;
+    baseHumid = 91;
+  } else if (locKey === 'pachmarhi') {
+    baseCape = 2100;
+    baseDbz = 42;
+    baseStormProb = 65;
+    baseLightningProb = 58;
+    baseWind = 46;
+    baseHumid = 94;
   } else {
-    baseCape = 1800;
-    baseDbz = 32;
-    baseStormProb = 45;
-    baseLightningProb = 40;
-    baseWind = 25;
-    baseHumid = 72;
+    // Deterministic procedural generation per station based on coordinates hash
+    const coordHash = Math.abs(Math.round((loc.lat * 100 + loc.lon * 50) % 50));
+    baseCape = 1800 + coordHash * 22;
+    baseDbz = 28 + Math.round((coordHash / 50) * 24);
+    baseStormProb = Math.min(85, Math.max(30, 40 + Math.round((coordHash / 50) * 42)));
+    baseLightningProb = Math.max(20, baseStormProb - 6);
+    baseWind = 26 + Math.round((coordHash / 50) * 20);
+    baseHumid = 70 + Math.round((coordHash / 50) * 18);
   }
 
   // Lead time adjustment (as lead time increases, confidence slightly drops and storm probability evolves)
