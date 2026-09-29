@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { 
   Layers, 
   MapPin, 
@@ -411,12 +412,27 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     mapInstanceRef.current = map;
 
     // Invalidate size on mount to ensure clean tile rendering on mobile & desktop
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+    const timer = setTimeout(() => {
+      try {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize({ debounceMoveend: true });
+        }
+      } catch {
+        // Ignore if map unmounted
+      }
+    }, 250);
 
     return () => {
-      map.remove();
+      clearTimeout(timer);
+      try {
+        if (layerGroupRef.current) {
+          layerGroupRef.current.clearLayers();
+        }
+        map.stop();
+        map.remove();
+      } catch {
+        // Safe unmount
+      }
       mapInstanceRef.current = null;
     };
   }, []);
@@ -766,7 +782,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       const marker = L.marker([loc.lat, loc.lon], { icon: cityIcon }).addTo(group);
       marker.on('click', () => {
         onSelectLocation(loc.id);
-        map.flyTo([loc.lat, loc.lon], Math.max(map.getZoom(), 8), { duration: 0.6 });
+        try {
+          if (mapInstanceRef.current && (mapInstanceRef.current as any)._loaded) {
+            mapInstanceRef.current.setView([loc.lat, loc.lon], Math.max(mapInstanceRef.current.getZoom(), 8), { animate: true });
+          }
+        } catch {
+          // Fallback if animation interrupted
+        }
       });
     });
 
@@ -815,7 +837,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 onSelectLocation(locId);
                 const found = ALL_LOCATIONS.find(l => l.id === locId);
                 if (found && mapInstanceRef.current) {
-                  mapInstanceRef.current.flyTo([found.lat, found.lon], Math.max(mapInstanceRef.current.getZoom(), 8), { duration: 0.6 });
+                  try {
+                    if ((mapInstanceRef.current as any)._loaded) {
+                      mapInstanceRef.current.setView([found.lat, found.lon], Math.max(mapInstanceRef.current.getZoom(), 8), { animate: true });
+                    }
+                  } catch {
+                    // Fallback
+                  }
                 }
               }}
               className="bg-slate-900 border border-slate-700/80 text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-cyan-400 cursor-pointer font-bold flex-1 w-full max-w-full sm:max-w-sm"
