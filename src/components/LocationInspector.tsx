@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Thermometer, 
   Droplets, 
@@ -11,19 +11,79 @@ import {
   Radio, 
   Satellite, 
   TrendingUp,
-  MapPin
+  MapPin,
+  RotateCw,
+  Globe,
+  CheckCircle2,
+  ExternalLink,
+  Copy,
+  Check,
+  Calendar,
+  Layers
 } from 'lucide-react';
 import type { LocationNowcastForecast } from '../types/nowcast';
+import { api } from '../services/api';
 
 interface LocationInspectorProps {
   forecast: LocationNowcastForecast | null;
   selectedHorizonMinutes: number;
 }
 
+const PRESET_COORDS = [
+  { id: 'bhopal', name: 'Bhopal (MP Radar)', lat: 23.25, lon: 77.41 },
+  { id: 'berlin', name: 'Berlin (User API: 52.52, 13.41)', lat: 52.52, lon: 13.41 },
+  { id: 'kolkata', name: 'Kolkata (Kalbaishakhi)', lat: 22.57, lon: 88.36 },
+  { id: 'delhi', name: 'Delhi NCR (Safdarjung)', lat: 28.61, lon: 77.20 },
+  { id: 'mumbai', name: 'Mumbai (Santacruz)', lat: 19.07, lon: 72.87 },
+  { id: 'bengaluru', name: 'Bengaluru (HAL)', lat: 12.97, lon: 77.59 }
+];
+
 export const LocationInspector: React.FC<LocationInspectorProps> = ({
   forecast,
   selectedHorizonMinutes
 }) => {
+  const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
+  const [isLoadingLive, setIsLoadingLive] = useState<boolean>(false);
+  const [selectedCoordId, setSelectedCoordId] = useState<string>('bhopal');
+  const [copiedUrl, setCopiedUrl] = useState<boolean>(false);
+  const [show7DayForecast, setShow7DayForecast] = useState<boolean>(true);
+  
+  // Real live data from Open-Meteo
+  const [liveData, setLiveData] = useState<{
+    queryUrl: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+    timestamp: string;
+    temperature: number;
+    apparentTemperature: number;
+    dewPoint: number;
+    relativeHumidity: number;
+    surfacePressureHpa: number;
+    windSpeedKmh: number;
+    windGustsKmh: number;
+    precipitationMm: number;
+    weatherCode: number;
+    weatherDesc: string;
+    weatherIcon: string;
+    isSevereConvective: boolean;
+    currentCape: number;
+    liftedIndex: number;
+    dailyForecast: Array<{
+      date: string;
+      tempMax: number;
+      tempMin: number;
+      apparentMax: number;
+      apparentMin: number;
+      precipSumMm: number;
+      precipProbMax: number;
+      windSpeedMax: number;
+      weatherCode: number;
+      weatherDesc: string;
+      weatherIcon: string;
+    }>;
+  } | null>(null);
+
   if (!forecast) {
     return (
       <div className="p-6 rounded-2xl border border-slate-800 bg-[#0c1220] flex items-center justify-center min-h-[360px] text-slate-400 font-mono text-xs">
@@ -32,203 +92,332 @@ export const LocationInspector: React.FC<LocationInspectorProps> = ({
     );
   }
 
-  const { atmosphericSounding: obs, currentRisk, stormProbabilityPct, confidencePct } = forecast;
+  const { atmosphericSounding: simObs, currentRisk, stormProbabilityPct, confidencePct } = forecast;
 
-  const getRiskBadge = () => {
-    switch (currentRisk) {
-      case 'SEVERE':
-        return <span className="text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded text-xs font-mono font-bold">● SEVERE RISK</span>;
-      case 'HIGH':
-        return <span className="text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-xs font-mono font-bold">▲ HIGH RISK</span>;
-      case 'MODERATE':
-        return <span className="text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded text-xs font-mono font-bold">◆ MODERATE</span>;
-      case 'LOW':
-      default:
-        return <span className="text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded text-xs font-mono font-bold">● LOW RISK</span>;
+  const fetchLiveCoordinates = async (lat: number, lon: number) => {
+    try {
+      setIsLoadingLive(true);
+      const data = await api.fetchRealTimeAtmosphere(lat, lon);
+      setLiveData(data);
+      setIsLiveMode(true);
+    } catch (err) {
+      console.error('Failed to fetch real live atmospheric data:', err);
+    } finally {
+      setIsLoadingLive(false);
     }
   };
 
+  const handleToggleLiveFeed = async () => {
+    if (isLiveMode) {
+      setIsLiveMode(false);
+      return;
+    }
+    const current = PRESET_COORDS.find(p => p.id === selectedCoordId) || { lat: simObs.latitude, lon: simObs.longitude };
+    await fetchLiveCoordinates(current.lat, current.lon);
+  };
+
+  const handleSelectPreset = async (presetId: string) => {
+    setSelectedCoordId(presetId);
+    const target = PRESET_COORDS.find(p => p.id === presetId);
+    if (target && isLiveMode) {
+      await fetchLiveCoordinates(target.lat, target.lon);
+    }
+  };
+
+  const handleCopyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
+
+  // Determine displayed parameters based on live vs sim
+  const displayTemp = isLiveMode && liveData ? liveData.temperature : simObs.temperatureC;
+  const displayHumidity = isLiveMode && liveData ? liveData.relativeHumidity : simObs.humidityPct;
+  const displayPressure = isLiveMode && liveData ? liveData.surfacePressureHpa : simObs.pressureHpa;
+  const displayCape = isLiveMode && liveData ? liveData.currentCape : simObs.capeJkg;
+  const displayWind = isLiveMode && liveData ? liveData.windSpeedKmh : simObs.windSpeedKmh;
+
+  const getRiskBadge = () => {
+    switch (currentRisk) {
+      case 'HIGH':
+        return {
+          bg: 'bg-rose-500/15',
+          border: 'border-rose-500/30',
+          text: 'text-rose-400',
+          dot: 'bg-rose-500',
+          label: 'CRITICAL CONVECTION'
+        };
+      case 'MODERATE':
+        return {
+          bg: 'bg-amber-500/15',
+          border: 'border-amber-500/30',
+          text: 'text-amber-400',
+          dot: 'bg-amber-500',
+          label: 'DEVELOPING CELL'
+        };
+      default:
+        return {
+          bg: 'bg-emerald-500/15',
+          border: 'border-emerald-500/30',
+          text: 'text-emerald-400',
+          dot: 'bg-emerald-500',
+          label: 'STABLE AIR MASS'
+        };
+    }
+  };
+
+  const risk = getRiskBadge();
+
   return (
-    <div className="rounded-2xl border border-slate-800 bg-[#090e1a] p-4 flex flex-col justify-between shadow-xl">
-      {/* Location Header */}
-      <div>
-        <div className="flex items-start justify-between pb-3 border-b border-slate-800">
-          <div>
-            <div className="flex items-center gap-1.5 text-xs font-mono text-cyan-400">
-              <MapPin className="w-3.5 h-3.5" />
-              <span>STATION OBSERVATORY</span>
-            </div>
-            <h3 className="text-lg font-bold text-white tracking-tight mt-0.5 font-['Chakra_Petch',sans-serif]">
-              {forecast.locationName}
-            </h3>
-            <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
-              <span>{obs.latitude.toFixed(4)}°N</span>
-              <span aria-hidden="true">·</span>
-              <span>{obs.longitude.toFixed(4)}°E</span>
-              <span aria-hidden="true">·</span>
-              <span className="text-slate-400">Horizon: T+{selectedHorizonMinutes}m</span>
-            </div>
+    <div className="rounded-2xl border border-slate-800 bg-[#090e1a] p-4 shadow-xl backdrop-blur-md">
+      {/* Top Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <Radio className="w-4 h-4" />
           </div>
-          <div className="text-right">
-            {getRiskBadge()}
-            <div className="text-[11px] font-mono text-slate-400 mt-1">
-              Prob: <span className="text-white font-bold">{stormProbabilityPct}%</span>
-            </div>
+          <div>
+            <h4 className="text-xs font-bold font-mono text-white uppercase tracking-wider">
+              {isLiveMode ? 'REAL-TIME ATMOSPHERIC OBSERVATORY' : 'STATION SOUNDING TELEMETRY'}
+            </h4>
+            <span className="text-[10px] text-slate-400 font-mono">
+              {isLiveMode ? 'Live Open-Meteo & Satellite Ingestion' : 'IMD AWS + Sounding Sensor Node'}
+            </span>
           </div>
         </div>
 
-        {/* Primary Sounding Telemetry Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-3.5">
+        {/* Live / Lab Mode Status Indicator */}
+        <div className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1.5 ${
+          isLiveMode 
+            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+            : `${risk.bg} ${risk.border} ${risk.text}`
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${isLiveMode ? 'bg-emerald-400 animate-ping' : risk.dot}`}></span>
+          <span>{isLiveMode ? 'LIVE API (HTTP 200)' : risk.label}</span>
+        </div>
+      </div>
+
+      {/* Live Feed Toggle & Preset Selector */}
+      <div className="mt-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Globe className={`w-4 h-4 ${isLiveMode ? 'text-emerald-400' : 'text-slate-400'}`} />
+            <span className="text-xs font-mono font-bold text-white">
+              {isLiveMode ? 'Open-Meteo Real-Time Ingestion' : 'Operational Stress-Test Lab'}
+            </span>
+          </div>
+
+          <button
+            onClick={handleToggleLiveFeed}
+            disabled={isLoadingLive}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+              isLiveMode
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
+                : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/20 active:scale-95'
+            }`}
+          >
+            {isLoadingLive ? (
+              <RotateCw className="w-3.5 h-3.5 animate-spin" />
+            ) : isLiveMode ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Globe className="w-3.5 h-3.5" />
+            )}
+            <span>{isLoadingLive ? 'CONNECTING...' : isLiveMode ? 'SWITCH TO LAB' : 'FETCH LIVE API'}</span>
+          </button>
+        </div>
+
+        {/* Preset Coordinate Selector Bar */}
+        <div className="flex items-center gap-1.5 pt-1 overflow-x-auto text-[11px] font-mono">
+          <span className="text-slate-400 shrink-0">Station:</span>
+          {PRESET_COORDS.map(preset => (
+            <button
+              key={preset.id}
+              onClick={() => handleSelectPreset(preset.id)}
+              className={`px-2 py-0.5 rounded transition-colors shrink-0 ${
+                selectedCoordId === preset.id
+                  ? 'bg-cyan-500 text-slate-950 font-bold'
+                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+              }`}
+            >
+              {preset.name.split(' (')[0]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Live API Response Banner & URL */}
+      {isLiveMode && liveData && (
+        <div className="mt-3 p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 space-y-1.5 font-mono text-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-cyan-300 font-bold flex items-center gap-1.5">
+              <span>{liveData.weatherIcon}</span>
+              <span>{liveData.weatherDesc} (WMO {liveData.weatherCode})</span>
+            </span>
+            <span className="text-slate-400 text-[10px]">
+              Feels Like {liveData.apparentTemperature.toFixed(1)}°C
+            </span>
+          </div>
+
+          {/* Direct API URL Link & Copy Button */}
+          <div className="p-1.5 rounded bg-slate-950 border border-slate-800/80 flex items-center justify-between gap-2 text-[10px]">
+            <a
+              href={liveData.queryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-cyan-300 truncate max-w-[280px] sm:max-w-[340px] flex items-center gap-1"
+              title="Open raw Open-Meteo JSON endpoint directly in new tab"
+            >
+              <ExternalLink className="w-3 h-3 text-cyan-400 shrink-0" />
+              <span className="truncate">{liveData.queryUrl}</span>
+            </a>
+            <button
+              onClick={() => handleCopyUrl(liveData.queryUrl)}
+              className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1 shrink-0 transition-colors"
+            >
+              {copiedUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              <span>{copiedUrl ? 'Copied' : 'Copy'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Primary Atmospheric Telemetry Grid */}
+      <div className="mt-3.5 space-y-3 font-mono">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {/* Temperature */}
           <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
               <span>TEMP</span>
               <Thermometer className="w-3 h-3 text-cyan-400" />
             </div>
             <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {obs.temperatureC.toFixed(1)}
+              <span className="text-xl font-bold text-white tabular-nums">
+                {displayTemp.toFixed(1)}
               </span>
-              <span className="text-[11px] font-mono text-slate-400 ml-1">°C</span>
+              <span className="text-[11px] text-slate-400 ml-1">°C</span>
             </div>
           </div>
 
           {/* Humidity */}
           <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
               <span>HUMIDITY</span>
               <Droplets className="w-3 h-3 text-cyan-400" />
             </div>
             <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {obs.humidityPct}
+              <span className="text-xl font-bold text-white tabular-nums">
+                {displayHumidity}
               </span>
-              <span className="text-[11px] font-mono text-slate-400 ml-1">% RH</span>
+              <span className="text-[11px] text-slate-400 ml-1">% RH</span>
             </div>
           </div>
 
           {/* Pressure */}
           <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
               <span>PRESSURE</span>
-              <Gauge className="w-3 h-3 text-slate-400" />
+              <Gauge className="w-3 h-3 text-cyan-400" />
             </div>
             <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {obs.pressureHpa.toFixed(1)}
+              <span className="text-xl font-bold text-white tabular-nums">
+                {displayPressure.toFixed(1)}
               </span>
-              <span className="text-[11px] font-mono text-slate-400 ml-1">hPa</span>
+              <span className="text-[11px] text-slate-400 ml-1">hPa</span>
             </div>
           </div>
 
-          {/* CAPE (Convective Available Potential Energy) */}
+          {/* CAPE */}
           <div className="p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20">
-            <div className="flex items-center justify-between text-[11px] font-mono text-amber-300">
+            <div className="flex items-center justify-between text-[11px] text-amber-300">
               <span>CAPE</span>
               <Flame className="w-3 h-3 text-amber-400" />
             </div>
             <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-amber-300 tabular-nums">
-                {obs.capeJkg}
+              <span className="text-xl font-bold text-amber-300 tabular-nums">
+                {displayCape}
               </span>
-              <span className="text-[11px] font-mono text-amber-400/80 ml-1">J/kg</span>
+              <span className="text-[11px] text-amber-400/80 ml-1">J/kg</span>
             </div>
           </div>
 
-          {/* CIN (Convective Inhibition) */}
+          {/* Wind Speed */}
           <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span>CIN</span>
-              <ShieldAlert className="w-3 h-3 text-slate-400" />
-            </div>
-            <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {obs.cinJkg}
-              </span>
-              <span className="text-[11px] font-mono text-slate-400 ml-1">J/kg</span>
-            </div>
-          </div>
-
-          {/* Wind Vector */}
-          <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
               <span>WIND SPEED</span>
               <Wind className="w-3 h-3 text-cyan-400" />
             </div>
             <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {obs.windSpeedKmh}
+              <span className="text-xl font-bold text-white tabular-nums">
+                {displayWind}
               </span>
-              <span className="text-[11px] font-mono text-slate-400 ml-1">km/h ({obs.windDirectionCompass})</span>
+              <span className="text-[11px] text-slate-400 ml-1">km/h</span>
             </div>
           </div>
 
-          {/* Doppler Radar Reflectivity */}
-          <div className="p-2.5 rounded-lg bg-rose-500/5 border border-rose-500/20">
-            <div className="flex items-center justify-between text-[11px] font-mono text-rose-300">
-              <span>RADAR CORE</span>
+          {/* Radar or Dew Point */}
+          <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <span>{isLiveMode ? 'WIND GUSTS' : 'RADAR CORE'}</span>
               <Radio className="w-3 h-3 text-rose-400" />
             </div>
             <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-rose-400 tabular-nums">
-                {obs.radarReflectivityDbz}
+              <span className="text-xl font-bold text-rose-400 tabular-nums">
+                {isLiveMode && liveData ? liveData.windGustsKmh : simObs.radarReflectivityDbz}
               </span>
-              <span className="text-[11px] font-mono text-rose-300/80 ml-1">dBZ</span>
-            </div>
-          </div>
-
-          {/* Satellite Cloud Top Temp */}
-          <div className="p-2.5 rounded-lg bg-indigo-500/5 border border-indigo-500/20">
-            <div className="flex items-center justify-between text-[11px] font-mono text-indigo-300">
-              <span>CLOUD TOP</span>
-              <Satellite className="w-3 h-3 text-indigo-400" />
-            </div>
-            <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-indigo-300 tabular-nums">
-                {obs.cloudTopTempC}
+              <span className="text-[11px] text-rose-300/80 ml-1">
+                {isLiveMode ? 'km/h' : 'dBZ'}
               </span>
-              <span className="text-[11px] font-mono text-indigo-300/80 ml-1">°C</span>
-            </div>
-          </div>
-
-          {/* Precipitation Rate */}
-          <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/80">
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span>PRECIP RATE</span>
-              <CloudRain className="w-3 h-3 text-cyan-400" />
-            </div>
-            <div className="mt-1 flex items-baseline">
-              <span className="text-xl font-bold font-mono text-white tabular-nums">
-                {obs.precipitationMmPerHour}
-              </span>
-              <span className="text-[11px] font-mono text-slate-400 ml-1">mm/h</span>
             </div>
           </div>
         </div>
 
-        {/* Lightning & Convective Surge Bar */}
-        <div className="mt-3 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs font-mono">
+        {/* 7-Day Real-Time Daily Forecast Strip (When in Live Mode) */}
+        {isLiveMode && liveData?.dailyForecast && (
+          <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div className="flex items-center justify-between text-[11px] pb-1 border-b border-slate-800">
+              <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                7-Day Open-Meteo Daily Synoptic Forecast
+              </span>
+              <span className="text-slate-400 text-[10px]">Auto-Synced</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px]">
+              {liveData.dailyForecast.slice(0, 4).map((day, i) => (
+                <div key={day.date} className="p-1.5 rounded bg-slate-900/80 border border-slate-800/70 space-y-0.5">
+                  <div className="flex justify-between text-slate-400">
+                    <span className="font-bold text-slate-300">
+                      {i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : day.date.slice(5)}
+                    </span>
+                    <span>{day.weatherIcon}</span>
+                  </div>
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-rose-400 font-bold">{day.tempMax.toFixed(0)}°</span>
+                    <span className="text-slate-400">{day.tempMin.toFixed(0)}°</span>
+                  </div>
+                  <div className="text-[9px] text-cyan-300 flex justify-between">
+                    <span>Rain: {day.precipSumMm}mm</span>
+                    <span>{day.precipProbMax}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Convective Alert Surge Status */}
+        <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-400" />
-            <span className="text-slate-300">Lightning Flash Density:</span>
-            <span className="text-amber-400 font-bold">{obs.lightningDensityPerKm2} /km²</span>
+            <span className="text-slate-300">Lightning Flash Threat:</span>
+            <span className="text-amber-400 font-bold">
+              {displayCape > 2500 ? 'SEVERE (Mixed-Phase)' : displayCape > 1500 ? 'ELEVATED' : 'LOW RISK'}
+            </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-slate-400">Trend:</span>
-            <span className="text-rose-400 font-bold uppercase">{obs.lightningTrend} ▲</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Model Output Footer */}
-      <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
-        <div>
-          <span>Pipeline: </span>
-          <span className="text-slate-200">LightGBM + ConvLSTM</span>
-        </div>
-        <div>
-          <span>Confidence: </span>
-          <span className="text-cyan-400 font-bold">{confidencePct}%</span>
+          <span className="text-cyan-400 font-bold">
+            Horizon: T+{selectedHorizonMinutes}m
+          </span>
         </div>
       </div>
     </div>
