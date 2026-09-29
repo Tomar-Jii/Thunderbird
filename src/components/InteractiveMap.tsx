@@ -804,10 +804,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       {/* Top Map HUD Controls - Mobile Responsive */}
       <div className="absolute top-2 left-2 right-2 z-[1000] flex flex-col gap-1.5 pointer-events-auto">
         {/* Station Navigation & Category Filter Bar (36 Stations) */}
-        <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-950/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono shadow-xl">
-          <div className="flex items-center gap-1.5 flex-1 min-w-[220px]">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 bg-slate-950/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono shadow-xl">
+          <div className="flex items-center gap-1.5 flex-1 min-w-[180px] sm:min-w-[220px]">
             <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-            <span className="text-slate-400 text-[10px] hidden sm:inline">OBSERVATORY:</span>
+            <span className="text-slate-400 text-[10px] hidden md:inline">OBSERVATORY:</span>
             <select
               value={selectedLocationId}
               onChange={(e) => {
@@ -818,7 +818,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   mapInstanceRef.current.flyTo([found.lat, found.lon], Math.max(mapInstanceRef.current.getZoom(), 8), { duration: 0.6 });
                 }
               }}
-              className="bg-slate-900 border border-slate-700/80 text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-cyan-400 cursor-pointer font-bold flex-1 max-w-sm"
+              className="bg-slate-900 border border-slate-700/80 text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-cyan-400 cursor-pointer font-bold flex-1 w-full max-w-full sm:max-w-sm"
               title="Select any of the 36 Weather Radar & District Stations across MP and India"
             >
               <optgroup label="Madhya Pradesh Districts (26 Stations)">
@@ -839,8 +839,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </div>
 
           {/* Quick Category Filter Pills */}
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] text-slate-500 hidden md:inline">RADAR PINS:</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[10px] text-slate-500 hidden lg:inline">RADAR PINS:</span>
             <button
               onClick={() => setStationCategory('ALL')}
               className={`px-2 py-0.5 rounded text-[10px] transition-colors cursor-pointer ${
@@ -855,7 +855,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 stationCategory === 'MP' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white bg-slate-900'
               }`}
             >
-              MP Districts (26)
+              MP (26)
             </button>
             <button
               onClick={() => setStationCategory('NATIONAL')}
@@ -868,7 +868,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-0.5">
+        <div className="flex items-center justify-between gap-1 sm:gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
           {/* Layer Visibility Toggles */}
           <div className="flex items-center gap-1 bg-slate-900/95 backdrop-blur-md p-1 rounded-xl border border-slate-800 text-xs shadow-xl shrink-0">
             {/* Live Radar Toggle */}
@@ -1140,58 +1140,58 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       </div>
 
       {/* Dynamic Storm Lifecycle & Radar Playback Time-Slider HUD */}
-      <div className="absolute bottom-2 left-2 right-2 z-[1000] flex flex-col gap-1.5 pointer-events-auto">
-        <div className="bg-slate-950/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-slate-800 shadow-2xl flex flex-col gap-2 text-xs font-mono">
+      <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 right-1.5 sm:right-2 z-[1000] flex flex-col gap-1 pointer-events-auto">
+        <div className="bg-slate-950/95 backdrop-blur-md p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-800 shadow-2xl flex flex-col gap-1.5 sm:gap-2 text-xs font-mono">
           
           {/* Top Row: Convective Phase Badge & Real-Time Telemetry */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
-            <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border shadow-sm ${currentPhase.badgeColor}`}>
-                <span className="text-sm">{currentPhase.icon}</span>
-                <span>{currentPhase.stageName}</span>
+          <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-800/80 pb-1.5 sm:pb-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold border shadow-sm ${currentPhase.badgeColor}`}>
+                <span>{currentPhase.icon}</span>
+                <span className="truncate max-w-[180px] sm:max-w-none">{currentPhase.stageName}</span>
               </div>
               <span className="text-[11px] text-slate-400 hidden xl:inline max-w-lg truncate">
                 {currentPhase.description}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
               {/* Dynamic Storm Reflectivity Core */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px]">
-                <span className="text-slate-400">CORE dBZ:</span>
+              <div className="flex items-center gap-1 bg-slate-900/90 px-2 py-0.5 sm:py-1 rounded-lg border border-slate-800 text-[10px] sm:text-[11px]">
+                <span className="text-slate-400">CORE:</span>
                 <span className={`font-bold ${currentPhase.simulatedDbz >= 55 ? 'text-rose-400 animate-pulse' : currentPhase.simulatedDbz >= 45 ? 'text-amber-400' : 'text-cyan-400'}`}>
                   {currentPhase.simulatedDbz} dBZ
                 </span>
               </div>
 
               {/* Lightning Discharge Rate */}
-              <div className="hidden sm:flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px]">
-                <span className="text-slate-400">LIGHTNING:</span>
+              <div className="hidden sm:flex items-center gap-1 bg-slate-900/90 px-2 py-0.5 sm:py-1 rounded-lg border border-slate-800 text-[11px]">
+                <span className="text-slate-400">LTG:</span>
                 <span className="text-amber-400 font-bold flex items-center gap-1">
                   <Zap className="w-3 h-3 text-amber-400 fill-current" />
-                  ~{currentPhase.simulatedFlashRate} fl/min
+                  ~{currentPhase.simulatedFlashRate}/m
                 </span>
               </div>
 
               {/* Echo Top */}
-              <div className="hidden md:flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-lg border border-slate-800 text-[11px]">
-                <span className="text-slate-400">ECHO TOP:</span>
-                <span className="text-purple-300 font-bold">{currentPhase.echoTopKm} km</span>
+              <div className="hidden md:flex items-center gap-1 bg-slate-900/90 px-2 py-1 rounded-lg border border-slate-800 text-[11px]">
+                <span className="text-slate-400">TOP:</span>
+                <span className="text-purple-300 font-bold">{currentPhase.echoTopKm}km</span>
               </div>
 
               {/* Time from Initiation Badge */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                <span>T + {selectedHorizonMinutes}m</span>
+              <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold text-[10px] sm:text-xs">
+                <Clock className="w-3 h-3 text-cyan-400" />
+                <span>+{selectedHorizonMinutes}m</span>
               </div>
             </div>
           </div>
 
           {/* Bottom Row: Playback Controls + Scrub Slider + Speed & Loop Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-3">
             
             {/* Playback Controls Group */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               {/* Jump to T+0m (Initiation) */}
               <button
                 onClick={() => {
@@ -1199,25 +1199,25 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   onSelectHorizon(0);
                   if (radarFrames.length > 0) setCurrentFrameIndex(0);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
                 title="Rewind to Storm Initiation (T+0m)"
               >
-                <SkipBack className="w-4 h-4" />
+                <SkipBack className="w-3.5 h-3.5" />
               </button>
 
               {/* Step Backward -15m */}
               <button
                 onClick={handleStepBackward}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
                 title="Step Backward -15 minutes"
               >
-                <ChevronDown className="w-4 h-4 rotate-90" />
+                <ChevronDown className="w-3.5 h-3.5 rotate-90" />
               </button>
 
               {/* Animated Loop Play / Pause Button */}
               <button
                 onClick={() => setIsStormCyclePlaying(!isStormCyclePlaying)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-md cursor-pointer ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all shadow-md cursor-pointer ${
                   isStormCyclePlaying
                     ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/30 animate-pulse'
                     : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 shadow-cyan-500/30'
@@ -1226,13 +1226,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               >
                 {isStormCyclePlaying ? (
                   <>
-                    <Pause className="w-3.5 h-3.5 fill-current" />
-                    <span>PAUSE LOOP</span>
+                    <Pause className="w-3 h-3 fill-current" />
+                    <span>PAUSE</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>ANIMATE CYCLE</span>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>LOOP</span>
                   </>
                 )}
               </button>
@@ -1240,10 +1240,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               {/* Step Forward +15m */}
               <button
                 onClick={handleStepForward}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
                 title="Step Forward +15 minutes"
               >
-                <ChevronUp className="w-4 h-4 rotate-90" />
+                <ChevronUp className="w-3.5 h-3.5 rotate-90" />
               </button>
 
               {/* Jump to T+120m (Dissipation) */}
@@ -1253,15 +1253,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   onSelectHorizon(120);
                   if (radarFrames.length > 0) setCurrentFrameIndex(radarFrames.length - 1);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+                className="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
                 title="Fast-forward to Final Dissipation (T+120m)"
               >
-                <SkipForward className="w-4 h-4" />
+                <SkipForward className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* Time-Slider Control (0 to 120m) with Snap Ticks */}
-            <div className="flex-1 min-w-[240px] px-1 sm:px-3 flex flex-col gap-1">
+            <div className="flex-1 min-w-[140px] sm:min-w-[200px] px-1 sm:px-2 flex flex-col gap-1">
               <div className="relative flex items-center">
                 <input
                   type="range"
@@ -1270,13 +1270,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   step="15"
                   value={selectedHorizonMinutes}
                   onChange={handleTimeSliderChange}
-                  className="w-full accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer transition-all"
+                  className="w-full accent-cyan-400 h-1.5 sm:h-2 bg-slate-800 rounded-lg cursor-pointer transition-all"
                   title="Drag time-slider to scrub through the 0-120 minute storm development cycle"
                 />
               </div>
 
               {/* Ticks & Step Pills */}
-              <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
+              <div className="flex justify-between items-center text-[9px] sm:text-[10px] text-slate-400 font-mono">
                 {STORM_CYCLE_STEPS.map((step) => {
                   const isActive = selectedHorizonMinutes === step;
                   return (
@@ -1289,13 +1289,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                           setCurrentFrameIndex(Math.floor((step / 120) * (radarFrames.length - 1)));
                         }
                       }}
-                      className={`transition-all px-1 py-0.5 rounded cursor-pointer ${
+                      className={`transition-all px-0.5 sm:px-1 py-0.5 rounded cursor-pointer ${
                         isActive
-                          ? 'text-cyan-300 font-bold scale-110 bg-cyan-950/80 border border-cyan-500/50'
+                          ? 'text-cyan-300 font-bold scale-105 bg-cyan-950/80 border border-cyan-500/50'
                           : 'hover:text-white'
                       }`}
                     >
-                      {step === 0 ? 'NOW' : `+${step}m`}
+                      {step === 0 ? '0' : `${step}`}
                     </button>
                   );
                 })}
@@ -1303,26 +1303,26 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             </div>
 
             {/* Speed & Loop Controls + dBZ Legend */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
               {/* Speed Buttons */}
-              <div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-[10px]">
+              <div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-[9px] sm:text-[10px]">
                 <button
                   onClick={() => setStormCycleSpeed(2000)}
-                  className={`px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 2000 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-1 sm:px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 2000 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
                   title="Slow 0.5x speed"
                 >
-                  0.5x
+                  .5x
                 </button>
                 <button
                   onClick={() => setStormCycleSpeed(1200)}
-                  className={`px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 1200 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-1 sm:px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 1200 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
                   title="Normal 1.0x speed"
                 >
                   1x
                 </button>
                 <button
                   onClick={() => setStormCycleSpeed(600)}
-                  className={`px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 600 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-1 sm:px-1.5 py-0.5 rounded cursor-pointer ${stormCycleSpeed === 600 ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
                   title="Fast 2.0x scan"
                 >
                   2x
@@ -1332,7 +1332,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               {/* Loop Mode Toggle */}
               <button
                 onClick={() => setIsContinuousLoop(!isContinuousLoop)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg border text-[9px] sm:text-[10px] font-bold transition-all cursor-pointer ${
                   isContinuousLoop
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                     : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
@@ -1340,18 +1340,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 title="Toggle continuous looping animation"
               >
                 <Repeat className={`w-3 h-3 ${isContinuousLoop ? 'text-emerald-400' : ''}`} />
-                <span>{isContinuousLoop ? 'LOOP ON' : 'ONCE'}</span>
+                <span className="hidden sm:inline">{isContinuousLoop ? 'LOOP' : 'ONCE'}</span>
               </button>
-
-              {/* Mini dBZ Color Reference */}
-              <div className="hidden 2xl:flex items-center gap-0.5 text-[9px] bg-slate-900 px-1.5 py-1 rounded-lg border border-slate-800">
-                <span className="text-slate-500 mr-0.5">dBZ:</span>
-                <span className="px-1 bg-cyan-500 text-slate-950 font-bold rounded-l">25</span>
-                <span className="px-1 bg-green-500 text-slate-950 font-bold">35</span>
-                <span className="px-1 bg-yellow-400 text-slate-950 font-bold">45</span>
-                <span className="px-1 bg-red-600 text-white font-bold">55</span>
-                <span className="px-1 bg-purple-600 text-white font-bold rounded-r">65+</span>
-              </div>
             </div>
 
           </div>

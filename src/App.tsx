@@ -229,7 +229,7 @@ export default function App() {
   const sourcesOnlineCount = dataSources.filter(s => s.status === 'ONLINE').length;
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans overflow-x-hidden w-full">
       {/* Floating Real-Time Severe Weather Toast Stack */}
       <SevereWeatherToastStack
         alerts={wsAlerts}
@@ -258,7 +258,7 @@ export default function App() {
       )}
 
       {/* Main Container */}
-      <main className="flex-1 max-w-[1720px] w-full mx-auto p-3 sm:p-4 lg:p-6 space-y-4">
+      <main className="flex-1 max-w-[1720px] w-full mx-auto p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 overflow-x-hidden">
         {/* Real-Time WebSocket Live Stream Bar */}
         <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2.5">
