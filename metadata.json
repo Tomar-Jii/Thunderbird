@@ -1,0 +1,6 @@
+{
+  "name": "StormSight AI - Convective Nowcasting Platform",
+  "description": "AIML-based Nowcasting of Thunderstorm and Lightning using Multisource Atmospheric Observations (SIH26072 - IMD/MoES)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

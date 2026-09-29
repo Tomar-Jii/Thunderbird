@@ -1,0 +1,40 @@
+[
+  {
+    "id": "EVENT-MP-01",
+    "title": "Bhopal Severe Supercell Outbreak",
+    "region": "Bhopal-Raisen Corridor",
+    "date": "2026-06-18",
+    "durationMinutes": 120,
+    "description": "Pre-monsoon explosive convective initiation with 62 dBZ core reflectivity and lightning jump of 95 strikes/min.",
+    "maxReflectivityDbz": 62.4,
+    "maxStrikesPerMinute": 95,
+    "groundTruthVerified": true,
+    "timelineFrames": [
+      { "offsetMinutes": 0, "label": "T+00m Initiation", "stormProbability": 38, "lightningStrikes": 6, "maxDbz": 36, "risk": "MODERATE" },
+      { "offsetMinutes": 15, "label": "T+15m Rapid Updraft", "stormProbability": 64, "lightningStrikes": 24, "maxDbz": 46, "risk": "HIGH" },
+      { "offsetMinutes": 30, "label": "T+30m Lightning Jump", "stormProbability": 88, "lightningStrikes": 82, "maxDbz": 56, "risk": "SEVERE" },
+      { "offsetMinutes": 45, "label": "T+45m Peak Convection", "stormProbability": 94, "lightningStrikes": 95, "maxDbz": 62, "risk": "SEVERE" },
+      { "offsetMinutes": 60, "label": "T+60m Downdraft Gust", "stormProbability": 82, "lightningStrikes": 58, "maxDbz": 54, "risk": "SEVERE" },
+      { "offsetMinutes": 90, "label": "T+90m Dissipation", "stormProbability": 46, "lightningStrikes": 18, "maxDbz": 40, "risk": "MODERATE" },
+      { "offsetMinutes": 120, "label": "T+120m Cold Pool", "stormProbability": 20, "lightningStrikes": 4, "maxDbz": 26, "risk": "LOW" }
+    ]
+  },
+  {
+    "id": "EVENT-MP-02",
+    "title": "Indore Convective Squall Line",
+    "region": "Malwa Plateau",
+    "date": "2026-07-04",
+    "durationMinutes": 120,
+    "description": "Fast-moving linear convective system with destructive 65 km/h surface wind gusts and intense cloud-to-ground discharges.",
+    "maxReflectivityDbz": 55.0,
+    "maxStrikesPerMinute": 62,
+    "groundTruthVerified": true,
+    "timelineFrames": [
+      { "offsetMinutes": 0, "label": "T+00m Pre-frontal convergence", "stormProbability": 30, "lightningStrikes": 2, "maxDbz": 28, "risk": "LOW" },
+      { "offsetMinutes": 30, "label": "T+30m Bow echo formation", "stormProbability": 76, "lightningStrikes": 35, "maxDbz": 49, "risk": "HIGH" },
+      { "offsetMinutes": 60, "label": "T+60m Apex passage", "stormProbability": 90, "lightningStrikes": 62, "maxDbz": 55, "risk": "SEVERE" },
+      { "offsetMinutes": 90, "label": "T+90m Trailing stratiform", "stormProbability": 55, "lightningStrikes": 14, "maxDbz": 38, "risk": "MODERATE" },
+      { "offsetMinutes": 120, "label": "T+120m Passage complete", "stormProbability": 18, "lightningStrikes": 2, "maxDbz": 22, "risk": "LOW" }
+    ]
+  }
+]
