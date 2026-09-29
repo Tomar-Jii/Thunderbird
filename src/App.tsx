@@ -23,8 +23,8 @@ import type {
   ModelHealthStatus,
   ReplayEvent 
 } from './types/nowcast';
-import { AlertTriangle, CheckCircle2, RotateCw, Download } from 'lucide-react';
-import { downloadProjectZip } from './utils/downloadZip';
+import { AlertTriangle, CheckCircle2, RotateCw } from 'lucide-react';
+import { SoundingProfile } from './components/SoundingProfile';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -171,22 +171,6 @@ export default function App() {
         activeAlertCount={activeAlertsCount}
       />
 
-      {/* Prominent Instant Project Zip Download Banner */}
-      <div className="bg-gradient-to-r from-cyan-950 via-slate-900 to-cyan-950 border-b border-cyan-500/40 px-4 py-2 flex flex-wrap items-center justify-between gap-3 shadow-lg">
-        <div className="flex items-center gap-2 text-xs font-mono text-cyan-200">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-          <span className="font-bold text-white">StormSight AI (SIH26072) Complete Repository Archive Ready</span>
-          <span className="hidden md:inline text-slate-400">· 48 files (React, FastAPI, Docker, Docs)</span>
-        </div>
-        <button
-          onClick={() => downloadProjectZip()}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-mono font-bold shadow-md shadow-cyan-500/30 transition-all active:scale-95 cursor-pointer"
-        >
-          <Download className="w-4 h-4 text-slate-950" />
-          <span>DOWNLOAD STORMSIGHT-AI.ZIP (169 KB)</span>
-        </button>
-      </div>
-
       {/* Inference Progress Toast */}
       {nowcastNotification && (
         <div className="bg-cyan-950/90 border-b border-cyan-500/50 px-4 py-2 text-xs font-mono text-cyan-200 flex items-center justify-center gap-2 animate-fade-in sticky top-[88px] z-30 backdrop-blur-md">
@@ -267,6 +251,9 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* Tab: Vertical Sounding & 3D Convective Profile */}
+        {activeTab === 'sounding' && <SoundingProfile />}
 
         {/* Tab 2: Alert Center */}
         {activeTab === 'alerts' && (

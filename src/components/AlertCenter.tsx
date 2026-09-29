@@ -10,9 +10,11 @@ import {
   MapPin, 
   Clock, 
   ShieldCheck,
-  BellRing
+  BellRing,
+  Volume2
 } from 'lucide-react';
 import type { AlertNotification, AlertSeverity } from '../types/nowcast';
+import { soundEffects } from '../utils/audioAlert';
 
 interface AlertCenterProps {
   alerts: AlertNotification[];
@@ -138,6 +140,16 @@ export const AlertCenter: React.FC<AlertCenterProps> = ({
               <option value="gwalior" className="bg-slate-900">Gwalior Belt</option>
             </select>
           </div>
+
+          {/* Test Emergency Siren Audio */}
+          <button
+            onClick={() => soundEffects.playSiren(3)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 text-xs font-mono font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+            title="Play authentic NDMA / IMD severe disaster alert broadcast siren"
+          >
+            <Volume2 className="w-3.5 h-3.5 text-rose-400" />
+            <span>SIREN AUDIBLE TEST</span>
+          </button>
         </div>
       </div>
 

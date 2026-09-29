@@ -11,9 +11,8 @@ import {
   Cpu, 
   Compass,
   CheckCircle2,
-  Download
+  Activity
 } from 'lucide-react';
-import { downloadProjectZip } from '../utils/downloadZip';
 
 interface HeaderProps {
   activeTab: string;
@@ -51,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const navItems = [
     { id: 'dashboard', label: 'Nowcast Console', icon: Compass },
+    { id: 'sounding', label: 'Sounding & 3D Convection', icon: Activity },
     { id: 'alerts', label: `Alert Center ${activeAlertCount > 0 ? `(${activeAlertCount})` : ''}`, icon: AlertTriangle },
     { id: 'fusion', label: 'Multisource Fusion', icon: Layers },
     { id: 'replay', label: 'Event Replay', icon: Clock },
@@ -146,15 +146,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <RotateCw className={`w-3.5 h-3.5 ${isRunningNowcast ? 'animate-spin' : ''}`} />
             <span>{isRunningNowcast ? 'INFERRING...' : 'RUN NOWCAST'}</span>
-          </button>
-
-          <button
-            onClick={() => downloadProjectZip()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-200 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 rounded-lg transition-all shadow-sm active:scale-95"
-            title="Download complete project ZIP (84KB) directly to your computer"
-          >
-            <Download className="w-3.5 h-3.5 text-cyan-400" />
-            <span>ZIP ARCHIVE</span>
           </button>
 
           <button
